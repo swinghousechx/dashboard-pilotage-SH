@@ -6,7 +6,7 @@
 <title>Swing House — Pilotage</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/Recharts.js"></script>
+<script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -476,21 +476,36 @@ function App(){
   const syncSheets=useCallback(async()=>{
     setSyncing(true); setSyncStatus("sync…");
     try{
-      const res=await fetch(APPS_SCRIPT_URL);
+      const res=await fetch(APPS_SCRIPT_URL, {redirect:"follow"});
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json=await res.json();
+      const text=await res.text();
+      const json=JSON.parse(text.trim().replace(/^\uFEFF/,""));
       const n={...CA_N_STATIC}, n1={...CA_N1_STATIC};
+
+      const apply=(rows, target)=>{ const found=parseSheetRows(rows); Object.assign(target,found); };
+
       if(Array.isArray(json)){
-        Object.assign(n, parseSheetRows(json));
-      } else {
-        const k26=Object.keys(json).find(k=>k.includes("26"));
-        const k25=Object.keys(json).find(k=>k.includes("25"));
-        if(k26) Object.assign(n,  parseSheetRows(json[k26]));
-        if(k25) Object.assign(n1, parseSheetRows(json[k25]));
-        if(!k26&&!k25) Object.values(json).forEach(rows=>{if(Array.isArray(rows)) Object.assign(n, parseSheetRows(rows));});
+        // Tableau simple — cherche N-1 vs N par année dans les lignes
+        apply(json, n);
+      } else if(typeof json==="object"){
+        // Objet multi-onglets
+        Object.entries(json).forEach(([key,rows])=>{
+          if(!Array.isArray(rows)) return;
+          if(key.includes("26")) apply(rows, n);
+          else if(key.includes("25")) apply(rows, n1);
+          else apply(rows, n);
+        });
       }
+
+      // Sécurité : ne jamais écraser N-1 2025 avec des nulls
+      MONTHS.forEach(m=>{ if(n1[m]==null) n1[m]=CA_N1_STATIC[m]; });
+
       setCaN(n); setCaN1(n1); setLastSync(new Date()); setSyncStatus("ok");
-    }catch(e){ setSyncStatus("erreur"); }
+      console.log("✅ Sync OK — N:", JSON.stringify(n));
+    }catch(e){
+      setSyncStatus("erreur");
+      console.warn("❌ Sync échouée:", e.message);
+    }
     setSyncing(false);
   },[]);
 
