@@ -40,8 +40,8 @@ const T = {
 
 // ── DONNÉES STATIQUES ─────────────────────────────────────────────────────────
 const CA_N_STATIC = {
-  Jan:16945.16, Fév:16368.67, Mar:16379.90, Avr:6749.30,
-  Mai:null, Jun:null, Jul:null, Aoû:null, Sep:null, Oct:null, Nov:null, Déc:null
+  Jan:16945.16, Fév:16368.67, Mar:16379.90, Avr:6782.25,
+  Mai:4015.50, Jun:null, Jul:null, Aoû:null, Sep:null, Oct:null, Nov:null, Déc:null
 };
 const CA_N1_STATIC = {
   Jan:0, Fév:6064.89, Mar:16321.74, Avr:6155.80,
@@ -493,7 +493,7 @@ function App(){
         Object.entries(json).forEach(([key,rows])=>{
           if(!Array.isArray(rows)) return;
           if(key.includes("26")) apply(rows, n);
-          else if(key.includes("25")) apply(rows, n1);
+          // N-1 locked: else if(key.includes("25")) apply(rows, n1);
           else apply(rows, n);
         });
       }
