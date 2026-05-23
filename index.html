@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Swing House — Pilotage</title>
+<title>Swing House â Pilotage</title>
 <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
@@ -28,7 +28,7 @@ const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
         ResponsiveContainer, LineChart, Line, ComposedChart, Area,
         ScatterChart, Scatter } = Recharts;
 
-// ── CONFIG ────────────────────────────────────────────────────────────────────
+// ââ CONFIG ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYNmL4HpimT0sPeIVMnpg_QYjzteULoFo4azYni0mn9N6o5joy8x-SOZFLyiMp11sU/exec";
 const LAT = 45.923, LON = 6.869;
 const font = "'DM Sans', system-ui, sans-serif";
@@ -38,15 +38,15 @@ const T = {
   txt:"#111", txt2:"#555", txt3:"#777", green:"#2e7d32", red:"#c62828",
 };
 
-// ── DONNÉES STATIQUES ─────────────────────────────────────────────────────────
+// ââ DONNÃES STATIQUES âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const CA_N_STATIC = {
-  Jan:16945.16, Fév:16368.67, Mar:16379.90, Avr:6782.25,
-  Mai:4015.50, Jun:null, Jul:null, Aoû:null, Sep:null, Oct:null, Nov:null, Déc:null
+  Jan:16945.16, FÃ©v:16368.67, Mar:16379.90, Avr:6782.25,
+  Mai:4015.50, Jun:null, Jul:null, AoÃ»:null, Sep:null, Oct:null, Nov:null, DÃ©c:null
 };
 const CA_N1_STATIC = {
-  Jan:0, Fév:6064.89, Mar:16321.74, Avr:6155.80,
-  Mai:1935.00, Jun:2562.81, Jul:5276.40, Aoû:6070.35,
-  Sep:3955.25, Oct:3709.00, Nov:5068.50, Déc:13410.53
+  Jan:0, FÃ©v:6064.89, Mar:16321.74, Avr:6155.80,
+  Mai:1935.00, Jun:2562.81, Jul:5276.40, AoÃ»:6070.35,
+  Sep:3955.25, Oct:3709.00, Nov:5068.50, DÃ©c:13410.53
 };
 const DJ_N1 = {
   "01":new Array(31).fill(0),
@@ -69,21 +69,21 @@ const DJ_N = {
   "09":new Array(30).fill(null),"10":new Array(31).fill(null),
   "11":new Array(30).fill(null),"12":new Array(31).fill(null),
 };
-const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+const MONTHS = ["Jan","FÃ©v","Mar","Avr","Mai","Jun","Jul","AoÃ»","Sep","Oct","Nov","DÃ©c"];
 const MM     = ["01","02","03","04","05","06","07","08","09","10","11","12"];
 const MONTH_MAP = {
-  "JANVIER":0,"FEVRIER":1,"FÉVRIER":1,"MARS":2,"AVRIL":3,"MAI":4,
-  "JUIN":5,"JUILLET":6,"AOUT":7,"AOÛT":7,"SEPTEMBRE":8,
-  "OCTOBRE":9,"NOVEMBRE":10,"DECEMBRE":11,"DÉCEMBRE":11
+  "JANVIER":0,"FEVRIER":1,"FÃVRIER":1,"MARS":2,"AVRIL":3,"MAI":4,
+  "JUIN":5,"JUILLET":6,"AOUT":7,"AOÃT":7,"SEPTEMBRE":8,
+  "OCTOBRE":9,"NOVEMBRE":10,"DECEMBRE":11,"DÃCEMBRE":11
 };
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-const fmt  = v => v==null?"—":new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v);
-const fmtK = v => !v?"0":v>=1000?`${(v/1000).toFixed(1)}k€`:`${Math.round(v)}€`;
+// ââ HELPERS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const fmt  = v => v==null?"â":new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v);
+const fmtK = v => !v?"0":v>=1000?`${(v/1000).toFixed(1)}kâ¬`:`${Math.round(v)}â¬`;
 const pct  = (a,b) => b?(((a-b)/b)*100):null;
 const clrD = d => d==null?T.txt3:d>0?T.green:d<0?T.red:T.txt2;
-const arrD = d => d==null?"":d>0?"▲":d<0?"▼":"—";
-const wmoI = c => {if(c===0)return"☀️";if(c<=2)return"🌤";if(c===3)return"☁️";if(c<=48)return"🌫";if(c<=55)return"🌦";if(c<=65)return"🌧";if(c<=75)return"❄️";if(c<=82)return"🌦";return"⛈";};
+const arrD = d => d==null?"":d>0?"â²":d<0?"â¼":"â";
+const wmoI = c => {if(c===0)return"âï¸";if(c<=2)return"ð¤";if(c===3)return"âï¸";if(c<=48)return"ð«";if(c<=55)return"ð¦";if(c<=65)return"ð§";if(c<=75)return"âï¸";if(c<=82)return"ð¦";return"â";};
 const wmoT = c => {if(c===0)return"Soleil";if(c<=2)return"Peu nuageux";if(c===3)return"Couvert";if(c<=48)return"Brouillard";if(c<=55)return"Bruine";if(c<=65)return"Pluie";if(c<=75)return"Neige";if(c<=82)return"Averses";return"Orage";};
 function pearson(xs,ys){const n=xs.length;if(n<3)return 0;const mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;const num=xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0);const den=Math.sqrt(xs.reduce((a,x)=>a+(x-mx)**2,0)*ys.reduce((a,y)=>a+(y-my)**2,0));return den?(num/den):0;}
 function estimateCA(rain,pairs){if(!pairs.length)return null;const n=pairs.length,mx=pairs.reduce((a,p)=>a+p.x,0)/n,my=pairs.reduce((a,p)=>a+p.y,0)/n;const b=pairs.reduce((a,p)=>a+(p.x-mx)*(p.y-my),0)/Math.max(pairs.reduce((a,p)=>a+(p.x-mx)**2,0),1);return Math.max(0,Math.round((my-b*mx)+b*rain));}
@@ -110,7 +110,7 @@ function parseSheetRows(rows) {
   return result;
 }
 
-// ── UI ATOMS ──────────────────────────────────────────────────────────────────
+// ââ UI ATOMS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const Card = ({children,style={}}) => <div style={{background:T.card,borderRadius:14,border:`0.5px solid ${T.border}`,padding:"18px 20px",...style}}>{children}</div>;
 const SLbl = ({children}) => <div style={{fontSize:10,fontWeight:500,letterSpacing:"0.07em",textTransform:"uppercase",color:T.txt3,marginBottom:10}}>{children}</div>;
 const DeltaBadge = ({d,size=12}) => d==null?null:<span style={{fontSize:size,fontWeight:500,color:clrD(d)}}>{arrD(d)} {Math.abs(d).toFixed(1)}%</span>;
@@ -122,7 +122,7 @@ const CTooltip = ({active,payload,label}) => {
     {payload.map((p,i)=><div key={i} style={{display:"flex",gap:8,alignItems:"center",color:T.txt2}}>
       <span style={{width:8,height:8,borderRadius:2,background:p.color,flexShrink:0}}/>
       <span>{p.name}</span>
-      <span style={{fontWeight:600,color:T.txt,marginLeft:"auto"}}>{p.value!=null?fmt(p.value):"—"}</span>
+      <span style={{fontWeight:600,color:T.txt,marginLeft:"auto"}}>{p.value!=null?fmt(p.value):"â"}</span>
     </div>)}
   </div>;
 };
@@ -155,7 +155,7 @@ function ProgressRow({m,n,n1}){
       <div style={{position:"absolute",left:0,top:0,width:`${Math.min(w*0.714,100)}%`,height:"100%",background:n>=n1?T.green:"#111",borderRadius:4,opacity:0.85}}/>
       <div style={{position:"absolute",left:"71.4%",top:0,width:"1.5px",height:"100%",background:T.border2}}/>
     </div>
-    <div style={{width:42,fontSize:11,fontWeight:600,color:clrD(d),textAlign:"right",flexShrink:0}}>{d!=null?(d>=0?"+":"")+Math.round(d)+"%":"—"}</div>
+    <div style={{width:42,fontSize:11,fontWeight:600,color:clrD(d),textAlign:"right",flexShrink:0}}>{d!=null?(d>=0?"+":"")+Math.round(d)+"%":"â"}</div>
     <div style={{width:50,fontSize:11,color:T.txt3,textAlign:"right",flexShrink:0}}>{fmtK(n||0)}</div>
   </div>;
 }
@@ -165,18 +165,18 @@ function AlerteBanner({rain,proba,objJour,demain}){
   const bon=proba>=60,neutre=proba>=40;
   const bg=bon?"#f0faf0":neutre?"#fffbeb":"#fff5f5";
   const bdr=bon?"#a5d6a7":neutre?"#fde68a":"#ffcdd2";
-  const ic=bon?"🎯":neutre?"〰️":"⚠️";
-  const lbl=bon?"Fort potentiel":neutre?"Potentiel modéré":"Journée difficile";
+  const ic=bon?"ð¯":neutre?"ã°ï¸":"â ï¸";
+  const lbl=bon?"Fort potentiel":neutre?"Potentiel modÃ©rÃ©":"JournÃ©e difficile";
   const c=bon?T.green:neutre?"#b45309":T.red;
   return <div style={{background:bg,border:`1px solid ${bdr}`,borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
     <span style={{fontSize:28}}>{ic}</span>
     <div style={{flex:1}}>
-      <div style={{fontSize:13,fontWeight:600,color:c}}>{demain?"Demain — ":""}{lbl}</div>
-      <div style={{fontSize:12,color:T.txt2,marginTop:2}}>{demain?"Prévision":"Aujourd'hui"} : 💧{rain}mm · objectif {fmtK(objJour)}</div>
+      <div style={{fontSize:13,fontWeight:600,color:c}}>{demain?"Demain â ":""}{lbl}</div>
+      <div style={{fontSize:12,color:T.txt2,marginTop:2}}>{demain?"PrÃ©vision":"Aujourd'hui"} : ð§{rain}mm Â· objectif {fmtK(objJour)}</div>
     </div>
     <div style={{textAlign:"center",minWidth:56}}>
       <div style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{proba}%</div>
-      <div style={{fontSize:10,color:T.txt3}}>probabilité</div>
+      <div style={{fontSize:10,color:T.txt3}}>probabilitÃ©</div>
     </div>
   </div>;
 }
@@ -204,7 +204,7 @@ function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily}){
     {probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
     {probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-      {[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1"},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub},i)=>(
+      {[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 mÃªme jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1"},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 mÃªme pÃ©riode"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub},i)=>(
         <Card key={i} style={{padding:"14px 16px"}}>
           <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>{label}</div>
           <div style={{fontSize:20,fontWeight:600,marginBottom:2}}>{fmt(n)}</div>
@@ -225,19 +225,19 @@ function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily}){
         </div>
       </Card>
       <Card>
-        <SLbl>Météo Chamonix</SLbl>
+        <SLbl>MÃ©tÃ©o Chamonix</SLbl>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          {[{title:"Aujourd'hui",wx:wxToday,ca:null},{title:"Même jour N-1",wx:wxHist,ca:caJN1}].map(({title,wx,ca},i)=>(
+          {[{title:"Aujourd'hui",wx:wxToday,ca:null},{title:"MÃªme jour N-1",wx:wxHist,ca:caJN1}].map(({title,wx,ca},i)=>(
             <div key={i} style={{background:T.card2,borderRadius:10,padding:"12px",border:`0.5px solid ${T.border}`}}>
               <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>{title}</div>
               {wx?<><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                 <span style={{fontSize:28}}>{wmoI(wx.code)}</span>
-                <div><div style={{fontSize:18,fontWeight:600}}>{wx.tmax}°C</div>
-                <div style={{fontSize:11,color:T.txt3}}>💧{wx.rain}mm</div></div>
+                <div><div style={{fontSize:18,fontWeight:600}}>{wx.tmax}Â°C</div>
+                <div style={{fontSize:11,color:T.txt3}}>ð§{wx.rain}mm</div></div>
               </div>
               <div style={{fontSize:11,color:T.txt2}}>{wmoT(wx.code)}</div>
               {ca!=null&&<div style={{fontSize:12,fontWeight:600,marginTop:4}}>{fmt(ca)}</div>}
-              </>:<div style={{fontSize:12,color:T.txt3,paddingTop:8}}>Chargement…</div>}
+              </>:<div style={{fontSize:12,color:T.txt3,paddingTop:8}}>Chargementâ¦</div>}
             </div>
           ))}
         </div>
@@ -246,19 +246,19 @@ function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily}){
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
       <Card>
         <SLbl>N vs N-1 par mois</SLbl>
-        <div style={{borderBottom:`0.5px solid ${T.border}`,marginBottom:6,paddingBottom:3,display:"flex",justifyContent:"flex-end"}}><span style={{fontSize:10,color:T.txt3}}>│ = N-1</span></div>
+        <div style={{borderBottom:`0.5px solid ${T.border}`,marginBottom:6,paddingBottom:3,display:"flex",justifyContent:"flex-end"}}><span style={{fontSize:10,color:T.txt3}}>â = N-1</span></div>
         {MONTHS.filter(m=>ca_n[m]!=null||ca_n1[m]>0).map(m=><ProgressRow key={m} m={m} n={ca_n[m]||0} n1={ca_n1[m]||0}/>)}
       </Card>
       {wxForecast.length>0&&<Card>
-        <SLbl>Prévisions 5 jours</SLbl>
+        <SLbl>PrÃ©visions 5 jours</SLbl>
         <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
           {wxForecast.map((f,i)=>{
             const s=f.rain>8?{l:"Fort",c:T.green}:f.rain>3?{l:"Favorable",c:"#1565c0"}:f.rain>0?{l:"Neutre",c:T.txt2}:{l:"Faible",c:T.red};
             return <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",borderRadius:8,background:i===0?T.card2:"transparent"}}>
               <span style={{fontSize:11,fontWeight:500,color:T.txt3,width:28}}>{f.label}</span>
               <span style={{fontSize:18,width:24}}>{wmoI(f.code)}</span>
-              <span style={{fontSize:13,fontWeight:600,width:36}}>{f.tmax}°C</span>
-              <span style={{fontSize:11,color:T.txt3,width:40}}>💧{f.rain}mm</span>
+              <span style={{fontSize:13,fontWeight:600,width:36}}>{f.tmax}Â°C</span>
+              <span style={{fontSize:11,color:T.txt3,width:40}}>ð§{f.rain}mm</span>
               <span style={{fontSize:11,fontWeight:600,color:s.c,marginLeft:"auto"}}>{s.l}</span>
             </div>;
           })}
@@ -306,11 +306,11 @@ function VueAnnee({ca_n,ca_n1,growth}){
     <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
       <Card style={{textAlign:"center"}}><Gauge value={totalN} target={objAnnuel} label="CA N annuel" size={160}/>
         <DeltaBadge d={pct(totalN,totalN1S)} size={13}/>
-        <div style={{fontSize:11,color:T.txt3,marginTop:2}}>vs N-1 même période</div>
+        <div style={{fontSize:11,color:T.txt3,marginTop:2}}>vs N-1 mÃªme pÃ©riode</div>
       </Card>
       <Card><SLbl>N-1 complet 2025</SLbl>
         <div style={{fontSize:26,fontWeight:600,marginTop:6}}>{fmt(totalN1F)}</div>
-        <SLbl>N-1 même période</SLbl>
+        <SLbl>N-1 mÃªme pÃ©riode</SLbl>
         <div style={{fontSize:18,fontWeight:500}}>{fmt(totalN1S)}</div>
       </Card>
       <Card><SLbl>Projection annuelle N</SLbl>
@@ -319,7 +319,7 @@ function VueAnnee({ca_n,ca_n1,growth}){
         <div style={{fontSize:11,color:T.txt3,marginTop:4}}>vs N-1 complet</div>
       </Card>
     </div>
-    <Card><SLbl>CA cumulé N vs N-1 vs Objectif</SLbl>
+    <Card><SLbl>CA cumulÃ© N vs N-1 vs Objectif</SLbl>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={cumData} margin={{top:4,right:4,left:-10,bottom:0}}>
           <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
@@ -337,12 +337,12 @@ function VueAnnee({ca_n,ca_n1,growth}){
 
 function VueJours({wxDaily}){
   const keys=[
-    {k:"n1-02",l:"Fév 25"},{k:"n1-03",l:"Mar 25"},{k:"n1-04",l:"Avr 25"},{k:"n1-05",l:"Mai 25"},
-    {k:"n1-06",l:"Jun 25"},{k:"n1-07",l:"Jul 25"},{k:"n1-08",l:"Aoû 25"},{k:"n1-09",l:"Sep 25"},
-    {k:"n1-10",l:"Oct 25"},{k:"n1-11",l:"Nov 25"},{k:"n1-12",l:"Déc 25"},
-    {k:"01",l:"Jan 26"},{k:"02",l:"Fév 26"},{k:"03",l:"Mar 26"},{k:"04",l:"Avr 26"},
-    {k:"05",l:"Mai 26"},{k:"06",l:"Jun 26"},{k:"07",l:"Jul 26"},{k:"08",l:"Aoû 26"},
-    {k:"09",l:"Sep 26"},{k:"10",l:"Oct 26"},{k:"11",l:"Nov 26"},{k:"12",l:"Déc 26"},
+    {k:"n1-02",l:"FÃ©v 25"},{k:"n1-03",l:"Mar 25"},{k:"n1-04",l:"Avr 25"},{k:"n1-05",l:"Mai 25"},
+    {k:"n1-06",l:"Jun 25"},{k:"n1-07",l:"Jul 25"},{k:"n1-08",l:"AoÃ» 25"},{k:"n1-09",l:"Sep 25"},
+    {k:"n1-10",l:"Oct 25"},{k:"n1-11",l:"Nov 25"},{k:"n1-12",l:"DÃ©c 25"},
+    {k:"01",l:"Jan 26"},{k:"02",l:"FÃ©v 26"},{k:"03",l:"Mar 26"},{k:"04",l:"Avr 26"},
+    {k:"05",l:"Mai 26"},{k:"06",l:"Jun 26"},{k:"07",l:"Jul 26"},{k:"08",l:"AoÃ» 26"},
+    {k:"09",l:"Sep 26"},{k:"10",l:"Oct 26"},{k:"11",l:"Nov 26"},{k:"12",l:"DÃ©c 26"},
   ];
   const autoSel=useMemo(()=>{const mm=MM[new Date().getMonth()];return DJ_N[mm]?mm:`n1-${mm}`;},[]);
   const [sel,setSel]=useState(autoSel);
@@ -358,12 +358,12 @@ function VueJours({wxDaily}){
     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
       {keys.map(({k,l})=><button key={k} onClick={()=>setSel(k)} style={{fontFamily:font,fontSize:11,fontWeight:sel===k?600:400,padding:"4px 11px",borderRadius:8,border:`0.5px solid ${sel===k?T.txt:T.border}`,background:sel===k?T.txt:T.card,color:sel===k?"#fff":T.txt2,cursor:"pointer"}}>{l}</button>)}
     </div>
-    <Card><SLbl>CA journalier + précipitations</SLbl>
+    <Card><SLbl>CA journalier + prÃ©cipitations</SLbl>
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={data} barCategoryGap="15%" margin={{top:4,right:30,left:-10,bottom:0}}>
           <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
           <XAxis dataKey="j" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
-          <YAxis yAxisId="ca" tickFormatter={v=>`${v}€`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+          <YAxis yAxisId="ca" tickFormatter={v=>`${v}â¬`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
           <YAxis yAxisId="rain" orientation="right" tickFormatter={v=>`${v}mm`} tick={{fontSize:10,fontFamily:font,fill:"#6ab0de"}} axisLine={false} tickLine={false}/>
           <Tooltip contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n.startsWith("CA")?fmt(v):`${v?.toFixed?.(1)}mm`}/>
           <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8} iconType="square"/>
@@ -392,7 +392,7 @@ function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
     return g;
   },[wxDaily]);
   const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
-  const condData=[{label:"☀️ Soleil",v:avg(condGroups.sun)||320,n:condGroups.sun.length},{label:"☁️ Nuageux",v:avg(condGroups.cloud)||480,n:condGroups.cloud.length},{label:"🌧 Pluie",v:avg(condGroups.rain)||720,n:condGroups.rain.length},{label:"❄️ Neige",v:avg(condGroups.snow)||900,n:condGroups.snow.length}];
+  const condData=[{label:"âï¸ Soleil",v:avg(condGroups.sun)||320,n:condGroups.sun.length},{label:"âï¸ Nuageux",v:avg(condGroups.cloud)||480,n:condGroups.cloud.length},{label:"ð§ Pluie",v:avg(condGroups.rain)||720,n:condGroups.rain.length},{label:"âï¸ Neige",v:avg(condGroups.snow)||900,n:condGroups.snow.length}];
   const maxC=Math.max(...condData.map(c=>c.v));
   const histWeek=useMemo(()=>{
     const today=new Date(),res=[];
@@ -400,29 +400,29 @@ function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
     return res;
   },[wxDaily]);
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-    <Card><SLbl>Prévisions J+5 — CA estimé</SLbl>
+    <Card><SLbl>PrÃ©visions J+5 â CA estimÃ©</SLbl>
       <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginTop:8}}>
         {wxForecast.map((f,i)=>{const est=estimateCA(f.rain,pairs);const s=f.rain>8?{c:T.green}:f.rain>3?{c:"#1565c0"}:f.rain>0?{c:T.txt2}:{c:T.red};
           return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:10,background:i===0?T.card2:T.card,border:`0.5px solid ${T.border}`}}>
             <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:4}}>{f.label}</div>
             <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
-            <div style={{fontSize:15,fontWeight:600}}>{f.tmax}°C</div>
-            <div style={{fontSize:11,color:T.txt3,margin:"2px 0"}}>💧{f.rain}mm</div>
+            <div style={{fontSize:15,fontWeight:600}}>{f.tmax}Â°C</div>
+            <div style={{fontSize:11,color:T.txt3,margin:"2px 0"}}>ð§{f.rain}mm</div>
             <div style={{height:"0.5px",background:T.border,margin:"8px 0"}}/>
-            <div style={{fontSize:14,fontWeight:600,color:s.c}}>{est?fmtK(est):"—"}</div>
+            <div style={{fontSize:14,fontWeight:600,color:s.c}}>{est?fmtK(est):"â"}</div>
           </div>;})}
       </div>
-      <div style={{fontSize:10,color:T.txt3,marginTop:10}}>Régression sur {pairs.length} jours réels · Open-Meteo Chamonix</div>
+      <div style={{fontSize:10,color:T.txt3,marginTop:10}}>RÃ©gression sur {pairs.length} jours rÃ©els Â· Open-Meteo Chamonix</div>
     </Card>
     <Card><SLbl>Cette semaine N-1 (2025)</SLbl>
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginTop:8}}>
         {histWeek.map((d,i)=><div key={i} style={{textAlign:"center",padding:"10px 4px",borderRadius:8,background:T.card2,border:`0.5px solid ${T.border}`}}>
           <div style={{fontSize:10,color:T.txt3,fontWeight:500}}>{d.label}</div>
-          <div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"—"}</div>
-          <div style={{fontSize:12,fontWeight:500}}>{d.temp!=null?`${d.temp}°`:"—"}</div>
-          <div style={{fontSize:10,color:T.txt3}}>💧{d.rain!=null?`${d.rain}mm`:"—"}</div>
+          <div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"â"}</div>
+          <div style={{fontSize:12,fontWeight:500}}>{d.temp!=null?`${d.temp}Â°`:"â"}</div>
+          <div style={{fontSize:10,color:T.txt3}}>ð§{d.rain!=null?`${d.rain}mm`:"â"}</div>
           <div style={{height:"0.5px",background:T.border,margin:"6px 0"}}/>
-          <div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.txt3}}>{d.ca>0?fmtK(d.ca):"—"}</div>
+          <div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.txt3}}>{d.ca>0?fmtK(d.ca):"â"}</div>
         </div>)}
       </div>
     </Card>
@@ -438,29 +438,29 @@ function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
           </div>)}
         </div>
       </Card>
-      <Card><SLbl>Corrélation pluie × CA</SLbl>
+      <Card><SLbl>CorrÃ©lation pluie Ã CA</SLbl>
         <div style={{textAlign:"center",paddingTop:12}}>
           <div style={{fontSize:56,fontWeight:700,color:r>0.4?T.green:r>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{r>=0?"+":""}{r.toFixed(2)}</div>
-          <div style={{fontSize:13,color:T.txt2,marginTop:8,fontWeight:500}}>{r>0.5?"Forte — pluie = revenus":r>0.3?"Corrélation modérée":"Faible / à affiner"}</div>
-          <div style={{fontSize:11,color:T.txt3,marginTop:4}}>Pearson r · {pairs.length} jours</div>
+          <div style={{fontSize:13,color:T.txt2,marginTop:8,fontWeight:500}}>{r>0.5?"Forte â pluie = revenus":r>0.3?"CorrÃ©lation modÃ©rÃ©e":"Faible / Ã  affiner"}</div>
+          <div style={{fontSize:11,color:T.txt3,marginTop:4}}>Pearson r Â· {pairs.length} jours</div>
         </div>
       </Card>
     </div>
-    <Card><SLbl>Scatter pluie × CA ({pairs.length} observations)</SLbl>
+    <Card><SLbl>Scatter pluie Ã CA ({pairs.length} observations)</SLbl>
       {pairs.length>5?<ResponsiveContainer width="100%" height={220}>
         <ScatterChart margin={{top:4,right:20,bottom:20,left:-10}}>
           <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
-          <XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Précipitations (mm)",position:"insideBottom",offset:-4,fontSize:10,fill:T.txt3}}/>
-          <YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+          <XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"PrÃ©cipitations (mm)",position:"insideBottom",offset:-4,fontSize:10,fill:T.txt3}}/>
+          <YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}â¬`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
           <Tooltip cursor={{strokeDasharray:"3 3"}} contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}mm`}/>
           <Scatter data={pairs} fill="#111" fillOpacity={0.3} r={4}/>
         </ScatterChart>
-      </ResponsiveContainer>:<div style={{textAlign:"center",padding:"40px 0",color:T.txt3}}>⏳ Chargement météo historique…</div>}
+      </ResponsiveContainer>:<div style={{textAlign:"center",padding:"40px 0",color:T.txt3}}>â³ Chargement mÃ©tÃ©o historiqueâ¦</div>}
     </Card>
   </div>;
 }
 
-// ── APP ───────────────────────────────────────────────────────────────────────
+// ââ APP âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function App(){
   const [vue,setVue]=useState("jour");
   const [ca_n,setCaN]=useState(CA_N_STATIC);
@@ -475,7 +475,7 @@ function App(){
   const [syncStatus,setSyncStatus]=useState("");
 
   const syncSheets=useCallback(async()=>{
-    setSyncing(true); setSyncStatus("sync…");
+    setSyncing(true); setSyncStatus("syncâ¦");
     try{
       const res=await fetch(APPS_SCRIPT_URL, {redirect:"follow"});
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -486,26 +486,26 @@ function App(){
       const apply=(rows, target)=>{ const found=parseSheetRows(rows); Object.assign(target,found); };
 
       if(Array.isArray(json)){
-        // Tableau simple — cherche N-1 vs N par année dans les lignes
+        // Tableau simple â cherche N-1 vs N par annÃ©e dans les lignes
         apply(json, n);
       } else if(typeof json==="object"){
         // Objet multi-onglets
         Object.entries(json).forEach(([key,rows])=>{
           if(!Array.isArray(rows)) return;
           if(key.includes("26")) apply(rows, n);
-          // N-1 locked: // N-1 locked: else if(key.includes("25")) apply(rows, n1);
+          // N-1 locked: else if(key.includes("25")) apply(rows, n1);
           else apply(rows, n);
         });
       }
 
-      // Sécurité : ne jamais écraser N-1 2025 avec des nulls
+      // SÃ©curitÃ© : ne jamais Ã©craser N-1 2025 avec des nulls
       MONTHS.forEach(m=>{ if(n1[m]==null) n1[m]=CA_N1_STATIC[m]; });
 
       setCaN(n); setCaN1(n1); setLastSync(new Date()); setSyncStatus("ok");
-      console.log("✅ Sync OK — N:", JSON.stringify(n));
+      console.log("â Sync OK â N:", JSON.stringify(n));
     }catch(e){
       setSyncStatus("erreur");
-      console.warn("❌ Sync échouée:", e.message);
+      console.warn("â Sync Ã©chouÃ©e:", e.message);
     }
     setSyncing(false);
   },[]);
@@ -541,7 +541,7 @@ function App(){
 
   const today=new Date();
   const dateStr=today.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^\w/,c=>c.toUpperCase());
-  const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"Météo"}];
+  const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"MÃ©tÃ©o"}];
 
   return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBottom:48}}>
     <div style={{background:T.card,borderBottom:`0.5px solid ${T.border}`,padding:"0 24px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,position:"sticky",top:0,zIndex:10,height:56}}>
@@ -571,8 +571,8 @@ function App(){
           <input type="range" min={-20} max={80} step={5} value={growth} onChange={e=>setGrowth(+e.target.value)} style={{width:80,accentColor:"#111"}}/>
         </div>
         <button onClick={syncSheets} disabled={syncing} style={{fontFamily:font,fontSize:11,padding:"5px 12px",borderRadius:6,border:`0.5px solid ${syncStatus==="erreur"?"#ffcdd2":T.border}`,background:syncStatus==="erreur"?"#fff5f5":T.card2,cursor:syncing?"wait":"pointer",color:syncStatus==="erreur"?T.red:T.txt2,display:"flex",alignItems:"center",gap:5,minWidth:90}}>
-          <span style={{fontSize:13}}>{syncing?"⏳":syncStatus==="erreur"?"⚠️":"↻"}</span>
-          <span>{syncing?"sync…":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
+          <span style={{fontSize:13}}>{syncing?"â³":syncStatus==="erreur"?"â ï¸":"â»"}</span>
+          <span>{syncing?"syncâ¦":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
         </button>
       </div>
     </div>
