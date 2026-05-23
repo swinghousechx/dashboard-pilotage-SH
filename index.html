@@ -491,8 +491,11 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 }
 
 
+const { LabelList, ReferenceLine } = Recharts;
+
 const SimuTooltip = ({active,payload,label}) => {
   if(!active||!payload?.length)return null;
+  const tot=+payload.reduce((s,p)=>s+(p.value||0),0).toFixed(1);
   return <div style={{background:T.card,border:`0.5px solid ${T.border}`,borderRadius:8,padding:"8px 12px",fontSize:12}}>
     <div style={{fontWeight:600,marginBottom:4}}>{label}</div>
     {payload.map((p,i)=><div key={i} style={{display:"flex",gap:8,alignItems:"center",color:T.txt2}}>
@@ -500,6 +503,11 @@ const SimuTooltip = ({active,payload,label}) => {
       <span>{p.name}</span>
       <span style={{fontWeight:600,color:T.txt,marginLeft:"auto"}}>{p.value!=null?p.value+"h":"—"}</span>
     </div>)}
+    {payload.length>1&&<div style={{display:"flex",gap:8,alignItems:"center",borderTop:`0.5px solid ${T.border}`,marginTop:4,paddingTop:4}}>
+      <span style={{width:8,height:8,flexShrink:0}}/>
+      <span style={{color:T.txt2}}>Total</span>
+      <span style={{fontWeight:700,color:T.txt,marginLeft:"auto"}}>{tot}h</span>
+    </div>}
   </div>;
 };
 
@@ -516,18 +524,25 @@ function VueSimu(){
     b2:+SIMU_DATA.reduce((a,r)=>a+r.b2,0).toFixed(1),
     b3:+SIMU_DATA.reduce((a,r)=>a+r.b3,0).toFixed(1),
   }),[]);
-  const grandTotal=totals.b1+totals.b2+totals.b3;
+  const grandTotal=+(totals.b1+totals.b2+totals.b3).toFixed(1);
   const topIdx=[totals.b1,totals.b2,totals.b3].indexOf(Math.max(totals.b1,totals.b2,totals.b3));
   const monthly=useMemo(()=>mLabels.map(ml=>{
     const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===ml);
     const rows=SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
-    return {m:ml,"Bay 1":+rows.reduce((a,r)=>a+r.b1,0).toFixed(1),"Bay 2":+rows.reduce((a,r)=>a+r.b2,0).toFixed(1),"Bay 3":+rows.reduce((a,r)=>a+r.b3,0).toFixed(1)};
+    const b1=+rows.reduce((a,r)=>a+r.b1,0).toFixed(1);
+    const b2=+rows.reduce((a,r)=>a+r.b2,0).toFixed(1);
+    const b3=+rows.reduce((a,r)=>a+r.b3,0).toFixed(1);
+    return {m:ml,"Bay 1":b1,"Bay 2":b2,"Bay 3":b3,total:+(b1+b2+b3).toFixed(1)};
   }),[]);
+  const filteredTotal=+filtered.reduce((a,r)=>a+r.b1+r.b2+r.b3,0).toFixed(1);
+  const avgJour=filtered.length?+(filteredTotal/filtered.length).toFixed(1):0;
+  const avgMois=+(grandTotal/4).toFixed(1);
+  const avgJourAll=+(grandTotal/SIMU_DATA.length).toFixed(1);
   const dayData=filtered.map(r=>({j:r.d,"Bay 1":r.b1,"Bay 2":r.b2,"Bay 3":r.b3}));
   const C=["#111","#888","#ccc"];
   const bayLabels=["Bay 1 (Entrée)","Bay 2","Bay 3"];
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
       {[totals.b1,totals.b2,totals.b3].map((h,i)=>{
         const share=grandTotal>0?Math.round(h/grandTotal*100):0;
         return <Card key={i} style={{position:"relative",overflow:"hidden"}}>
@@ -540,24 +555,44 @@ function VueSimu(){
           </div>
         </Card>;
       })}
+      <Card style={{background:T.card2}}>
+        <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>Σ Total</div>
+        <div style={{fontSize:26,fontWeight:700,marginBottom:10}}>{grandTotal}h</div>
+        <div style={{display:"flex",flexDirection:"column",gap:5}}>
+          {[["Annuel (ytd)",grandTotal+"h"],["Moy. / mois",avgMois+"h"],["Moy. / jour",avgJourAll+"h"]].map(([l,v])=>(
+            <div key={l} style={{display:"flex",justifyContent:"space-between",fontSize:11}}>
+              <span style={{color:T.txt3}}>{l}</span>
+              <span style={{fontWeight:600,color:T.txt}}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
     <Card>
-      <SLbl>Heures par bay — agrégat mensuel</SLbl>
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={monthly} barCategoryGap="25%" margin={{top:4,right:4,left:-10,bottom:0}}>
+      <SLbl>Heures par bay — agrégat mensuel (total en haut)</SLbl>
+      <ResponsiveContainer width="100%" height={230}>
+        <BarChart data={monthly} barCategoryGap="30%" margin={{top:18,right:4,left:-10,bottom:0}}>
           <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
           <XAxis dataKey="m" tick={{fontSize:11,fontFamily:font}} axisLine={false} tickLine={false}/>
           <YAxis tickFormatter={v=>v+"h"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
           <Tooltip content={<SimuTooltip/>}/>
           <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8} iconType="square"/>
-          <Bar dataKey="Bay 1" fill={C[0]} radius={[3,3,0,0]}/>
-          <Bar dataKey="Bay 2" fill={C[1]} radius={[3,3,0,0]}/>
-          <Bar dataKey="Bay 3" fill={C[2]} radius={[3,3,0,0]}/>
+          <Bar dataKey="Bay 1" stackId="s" fill={C[0]}/>
+          <Bar dataKey="Bay 2" stackId="s" fill={C[1]}/>
+          <Bar dataKey="Bay 3" stackId="s" fill={C[2]} radius={[3,3,0,0]}>
+            <LabelList dataKey="total" position="top" style={{fontSize:10,fontWeight:700,fill:T.txt,fontFamily:font}} formatter={v=>v+"h"}/>
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </Card>
     <Card>
-      <SLbl>Détail journalier</SLbl>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,flexWrap:"wrap",gap:8}}>
+        <SLbl style={{margin:0}}>Détail journalier</SLbl>
+        <div style={{fontSize:11,color:T.txt2}}>
+          Total période : <span style={{fontWeight:700,color:T.txt}}>{filteredTotal}h</span>
+          <span style={{marginLeft:8,color:T.txt3}}>{filtered.length}j · moy. {avgJour}h/j</span>
+        </div>
+      </div>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
         {["all",...mLabels].map(m=><button key={m} onClick={()=>setSelM(m)} style={{fontFamily:font,fontSize:11,fontWeight:selM===m?600:400,padding:"4px 11px",borderRadius:8,border:`0.5px solid ${selM===m?T.txt:T.border}`,background:selM===m?T.txt:T.card,color:selM===m?"#fff":T.txt2,cursor:"pointer"}}>{m==="all"?"Tout":m}</button>)}
       </div>
@@ -568,6 +603,7 @@ function VueSimu(){
           <YAxis tickFormatter={v=>v+"h"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
           <Tooltip content={<SimuTooltip/>}/>
           <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8} iconType="square"/>
+          <ReferenceLine y={8} stroke={T.red} strokeDasharray="4 3" strokeWidth={1.5} label={{value:"obj. 8h",position:"right",fontSize:10,fill:T.red,fontFamily:font}}/>
           <Bar dataKey="Bay 1" stackId="s" fill={C[0]}/>
           <Bar dataKey="Bay 2" stackId="s" fill={C[1]}/>
           <Bar dataKey="Bay 3" stackId="s" fill={C[2]} radius={[2,2,0,0]}/>
