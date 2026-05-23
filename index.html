@@ -48,7 +48,7 @@ Jan:0, Fév:6064.89, Mar:16321.74, Avr:6155.80,
 Mai:1935.00, Jun:2562.81, Jul:5276.40, Aoû:6070.35,
 Sep:3955.25, Oct:3709.00, Nov:5068.50, Déc:13410.53
 };
-const DJ_N1 = {
+let DJ_N1 = {
 "01":new Array(31).fill(0),
 "02":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,621.77,396.52,307.4,1022.2,153,371,417.5,793.5,15.75,135.5,393.5,467.25,502,468,0,0,0],
 "03":[839.22,168.5,510,104.5,635.5,1022.5,338.5,594.67,657.4,958.66,686.5,666.49,794,1037,586.5,260,160,291.5,425.5,543.55,448.5,926.8,709.5,170,194.5,620.5,505.45,239.5,1065.5,35.5,125.5],
@@ -59,7 +59,7 @@ const DJ_N1 = {
 "08":new Array(31).fill(0),"09":new Array(30).fill(0),
 "10":new Array(31).fill(0),"11":new Array(30).fill(0),"12":new Array(31).fill(0),
 };
-const DJ_N = {
+let DJ_N = {
 "01":[1066,719.75,525.12,514.65,55.5,420.5,581.25,1021.5,1168,369.5,144,38.75,494.32,683.5,428.75,981.5,766.52,138.87,0,484.23,678.11,415.83,795.02,1170.97,245.27,0,354.8,812.78,880.2,314.92,675.05],
 "02":[504.68,0,891.71,981.06,593.2,1121.05,216.45,449.36,0,551.79,915.16,928.98,1103.9,817.5,765.48,112.5,646.52,1003.48,801.06,1101.45,545.8,659.92,0,308.33,508.87,278.62,435,126.8,0,0,0],
 "03":[143.4,142.5,905.96,925.6,834.29,858.74,764.58,52.05,337.5,862.39,762.82,733,1344.67,1138.39,189.82,166.48,273.05,312.45,110.55,403.53,453.89,548.85,0,600.15,672.66,862.77,197.65,538.5,130.1,77.75,1035.81],
@@ -79,7 +79,7 @@ const MONTH_MAP = {
 
 
 // ── STATS SIMU ────────────────────────────────────────────────────────────────
-const SIMU_DATA = [
+let SIMU_DATA = [
   {d:"01/02",b1:3,b2:1,b3:4.5},{d:"03/02",b1:5,b2:3,b3:4.5},{d:"04/02",b1:2,b2:2.5,b3:7},
   {d:"05/02",b1:0,b2:3,b3:6},{d:"06/02",b1:4.5,b2:7,b3:6.5},{d:"07/02",b1:3,b2:1,b3:5.5},
   {d:"08/02",b1:1.5,b2:2,b3:5},{d:"10/02",b1:3.5,b2:3,b3:5},{d:"11/02",b1:3,b2:1,b3:4},
@@ -105,7 +105,50 @@ const SIMU_DATA = [
   {d:"22/04",b1:0,b2:0,b3:1},{d:"25/04",b1:0,b2:1,b3:0},{d:"26/04",b1:0,b2:1,b3:0},
   {d:"23/05",b1:0,b2:0,b3:1},
 ];
-const SIMU_M_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
+let SIMU_M_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
+
+// ── PARSEURS DYNAMIQUES ───────────────────────────────────────────────────────
+function parseDailyCa(rows) {
+  // rows : lignes CAISSE 26, index 1 = date ISO YYYY-MM-DD, index 10 = CA total
+  const result = {};
+  if (!Array.isArray(rows)) return result;
+  rows.forEach(function(row) {
+    const dateStr = String(row[1] ?? "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+    const parts = dateStr.split("-");
+    const mm = parts[1];
+    const dayIdx = parseInt(parts[2], 10) - 1;
+    if (dayIdx < 0 || dayIdx > 30) return;
+    const raw = row[10];
+    const val = typeof raw === "number" ? raw : parseFloat(String(raw ?? "").replace(",", ".")) || 0;
+    if (!result[mm]) result[mm] = new Array(31).fill(null);
+    result[mm][dayIdx] = val;
+  });
+  return result;
+}
+
+function parseSimuRows(rows) {
+  // rows : lignes STATS SIMU, col A = DD/MM/YYYY, B = Bay1, C = Bay2, D = Bay3
+  const result = [];
+  if (!Array.isArray(rows)) return result;
+  const MONTH_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
+    "07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc"};
+  rows.forEach(function(row) {
+    const dateStr = String(row[0] ?? "");
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return;
+    const parts = dateStr.split("/");
+    const dd = parts[0], mm = parts[1];
+    const b1 = parseFloat(row[1]) || 0;
+    const b2 = parseFloat(row[2]) || 0;
+    const b3 = parseFloat(row[3]) || 0;
+    result.push({d: dd + "/" + mm, b1: b1, b2: b2, b3: b3});
+  });
+  // Rebuild SIMU_M_LABELS from data months
+  const months = [...new Set(result.map(r => r.d.split("/")[1]))].sort();
+  Object.keys(SIMU_M_LABELS).forEach(k => delete SIMU_M_LABELS[k]);
+  months.forEach(function(mm) { if (MONTH_LABELS[mm]) SIMU_M_LABELS[mm] = MONTH_LABELS[mm]; });
+  return result;
+}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const fmt = v => v==null?"—":new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v);
@@ -513,31 +556,32 @@ const SimuTooltip = ({active,payload,label}) => {
 
 function VueSimu(){
   const [selM,setSelM]=useState("all");
-  const mLabels=["Fév","Mar","Avr","Mai"];
-  const filtered=useMemo(()=>{
-    if(selM==="all")return SIMU_DATA;
+  // mLabels dérivé dynamiquement de SIMU_M_LABELS (mis à jour par parseSimuRows)
+  const mLabels=Object.values(SIMU_M_LABELS);
+  // Pas de useMemo sur [] pour que ces valeurs se recalculent quand SIMU_DATA change
+  const filtered=selM==="all"?SIMU_DATA:(()=>{
     const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===selM);
     return SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
-  },[selM]);
-  const totals=useMemo(()=>({
+  })();
+  const totals={
     b1:+SIMU_DATA.reduce((a,r)=>a+r.b1,0).toFixed(1),
     b2:+SIMU_DATA.reduce((a,r)=>a+r.b2,0).toFixed(1),
     b3:+SIMU_DATA.reduce((a,r)=>a+r.b3,0).toFixed(1),
-  }),[]);
+  };
   const grandTotal=+(totals.b1+totals.b2+totals.b3).toFixed(1);
   const topIdx=[totals.b1,totals.b2,totals.b3].indexOf(Math.max(totals.b1,totals.b2,totals.b3));
-  const monthly=useMemo(()=>mLabels.map(ml=>{
+  const monthly=mLabels.map(ml=>{
     const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===ml);
     const rows=SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
     const b1=+rows.reduce((a,r)=>a+r.b1,0).toFixed(1);
     const b2=+rows.reduce((a,r)=>a+r.b2,0).toFixed(1);
     const b3=+rows.reduce((a,r)=>a+r.b3,0).toFixed(1);
     return {m:ml,"Bay 1":b1,"Bay 2":b2,"Bay 3":b3,total:+(b1+b2+b3).toFixed(1)};
-  }),[]);
+  });
   const filteredTotal=+filtered.reduce((a,r)=>a+r.b1+r.b2+r.b3,0).toFixed(1);
   const avgJour=filtered.length?+(filteredTotal/filtered.length).toFixed(1):0;
-  const avgMois=+(grandTotal/4).toFixed(1);
-  const avgJourAll=+(grandTotal/SIMU_DATA.length).toFixed(1);
+  const avgMois=mLabels.length?+(grandTotal/mLabels.length).toFixed(1):0;
+  const avgJourAll=SIMU_DATA.length?+(grandTotal/SIMU_DATA.length).toFixed(1):0;
   const dayData=filtered.map(r=>({j:r.d,"Bay 1":r.b1,"Bay 2":r.b2,"Bay 3":r.b3}));
   const C=["#111","#888","#ccc"];
   const bayLabels=["Bay 1 (Entrée)","Bay 2","Bay 3"];
@@ -649,6 +693,16 @@ if(key.includes("26")) apply(rows, n);
 
 MONTHS.forEach(m=>{ if(n1[m]==null) n1[m]=CA_N1_STATIC[m]; });
 
+// Mise à jour dynamique CA journalier (DJ_N) depuis CAISSE 26
+if(typeof json==="object"&&!Array.isArray(json)&&Array.isArray(json["CAISSE 26"])){
+  const dj=parseDailyCa(json["CAISSE 26"]);
+  Object.keys(dj).forEach(function(mm){DJ_N[mm]=dj[mm];});
+}
+// Mise à jour dynamique simulateurs (SIMU_DATA) depuis STATS SIMU
+if(typeof json==="object"&&!Array.isArray(json)&&Array.isArray(json["STATS SIMU"])){
+  const sd=parseSimuRows(json["STATS SIMU"]);
+  if(sd.length>0){SIMU_DATA=sd;}
+}
 setCaN(n); setCaN1(n1); setLastSync(new Date()); setSyncStatus("ok");
 console.log("✅ Sync OK — N:", JSON.stringify(n));
 }catch(e){
