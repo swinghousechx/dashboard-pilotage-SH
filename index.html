@@ -493,7 +493,7 @@ function App(){
         Object.entries(json).forEach(([key,rows])=>{
           if(!Array.isArray(rows)) return;
           if(key.includes("26")) apply(rows, n);
-          // N-1 locked: else if(key.includes("25")) apply(rows, n1);
+          // N-1 locked: // N-1 locked: else if(key.includes("25")) apply(rows, n1);
           else apply(rows, n);
         });
       }
