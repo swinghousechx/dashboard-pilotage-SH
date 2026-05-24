@@ -109,44 +109,59 @@ let SIMU_M_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
 
 // ── PARSEURS DYNAMIQUES ───────────────────────────────────────────────────────
 function parseDailyCa(rows) {
-  // rows : lignes CAISSE 26, index 1 = date ISO YYYY-MM-DD, index 10 = CA total
+  // rows : lignes CAISSE 26, index 1 = date ISO datetime, index 10 = CA total
   const result = {};
   if (!Array.isArray(rows)) return result;
   rows.forEach(function(row) {
-    const dateStr = String(row[1] ?? "");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
-    const parts = dateStr.split("-");
-    const mm = parts[1];
-    const dayIdx = parseInt(parts[2], 10) - 1;
+    const raw = row[1];
+    if (!raw) return;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dayIdx = d.getDate() - 1;
     if (dayIdx < 0 || dayIdx > 30) return;
-    const raw = row[10];
-    const val = typeof raw === "number" ? raw : parseFloat(String(raw ?? "").replace(",", ".")) || 0;
+    const v = row[10];
+    const val = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(",", ".")) || 0;
     if (!result[mm]) result[mm] = new Array(31).fill(null);
     result[mm][dayIdx] = val;
   });
   return result;
 }
 
+function parseH(v) {
+  // Retourne une valeur numérique pour les heures de bay
+  // Retourne 0 si v est une date ISO (cellule corrompue dans STATS SIMU)
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  const s = String(v);
+  if (/T\d{2}:\d{2}/.test(s)) return 0;
+  return parseFloat(s.replace(",", ".")) || 0;
+}
+
 function parseSimuRows(rows) {
-  // rows : lignes STATS SIMU, col A = DD/MM/YYYY, B = Bay1, C = Bay2, D = Bay3
+  // rows : lignes STATS SIMU, col A = ISO datetime, B = Bay1, C = Bay2, D = Bay3
   const result = [];
   if (!Array.isArray(rows)) return result;
   const MONTH_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
     "07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc"};
   rows.forEach(function(row) {
-    const dateStr = String(row[0] ?? "");
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return;
-    const parts = dateStr.split("/");
-    const dd = parts[0], mm = parts[1];
-    const b1 = parseFloat(row[1]) || 0;
-    const b2 = parseFloat(row[2]) || 0;
-    const b3 = parseFloat(row[3]) || 0;
+    const raw = row[0];
+    if (!raw) return;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const b1 = parseH(row[1]);
+    const b2 = parseH(row[2]);
+    const b3 = parseH(row[3]);
     result.push({d: dd + "/" + mm, b1: b1, b2: b2, b3: b3});
   });
-  // Rebuild SIMU_M_LABELS from data months
-  const months = [...new Set(result.map(r => r.d.split("/")[1]))].sort();
-  Object.keys(SIMU_M_LABELS).forEach(k => delete SIMU_M_LABELS[k]);
-  months.forEach(function(mm) { if (MONTH_LABELS[mm]) SIMU_M_LABELS[mm] = MONTH_LABELS[mm]; });
+  // Rebuild SIMU_M_LABELS from data months — seulement si on a des résultats
+  if (result.length > 0) {
+    const months = [...new Set(result.map(r => r.d.split("/")[1]))].sort();
+    Object.keys(SIMU_M_LABELS).forEach(k => delete SIMU_M_LABELS[k]);
+    months.forEach(function(mm) { if (MONTH_LABELS[mm]) SIMU_M_LABELS[mm] = MONTH_LABELS[mm]; });
+  }
   return result;
 }
 
