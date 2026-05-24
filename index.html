@@ -464,19 +464,29 @@ return <div style={{display:"flex",flexDirection:"column",gap:12}}>
 </div>;
 }
 
+const isSnow=c=>c!=null&&((c>=71&&c<=77)||(c===85||c===86));
+const isRain=c=>c!=null&&!isSnow(c)&&c>=51;
 function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
-const pairs=useMemo(()=>{
+const rainPairs=useMemo(()=>{
 const p=[];
-Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
-Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
 return p;
 },[wxDaily]);
-const r=pearson(pairs.map(p=>p.x),pairs.map(p=>p.y));
+const snowPairs=useMemo(()=>{
+const p=[];
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+return p;
+},[wxDaily]);
+const pairs=useMemo(()=>[...rainPairs,...snowPairs],[rainPairs,snowPairs]);
+const rRain=pearson(rainPairs.map(p=>p.x),rainPairs.map(p=>p.y));
+const rSnow=pearson(snowPairs.map(p=>p.x),snowPairs.map(p=>p.y));
 const condGroups=useMemo(()=>{
 const g={sun:[],cloud:[],rain:[],snow:[]};
 const all=[...Object.entries(DJ_N1).flatMap(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));}),
 ...Object.entries(DJ_N).flatMap(([mm,arr])=>{const wx=wxDaily[mm]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));})];
-all.forEach(({ca,wx})=>{if(!wx||ca<=0)return;const c=wx.code;if(c===0||c<=2)g.sun.push(ca);else if(c<=45)g.cloud.push(ca);else if(c<=82)g.rain.push(ca);else if(c<=75)g.snow.push(ca);});
+all.forEach(({ca,wx})=>{if(!wx||ca<=0)return;const c=wx.code;if(c===0||c<=2)g.sun.push(ca);else if(c<=48)g.cloud.push(ca);else if(isSnow(c))g.snow.push(ca);else g.rain.push(ca);});
 return g;
 },[wxDaily]);
 const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
@@ -484,7 +494,7 @@ const condData=[{label:"☀️ Soleil",v:avg(condGroups.sun)||320,n:condGroups.s
 const maxC=Math.max(...condData.map(c=>c.v));
 const histWeek=useMemo(()=>{
 const today=new Date(),res=[];
-for(let i=6;i>=0;i--){const d=new Date(today);d.setFullYear(d.getFullYear()-1);d.setDate(d.getDate()-i);const mm=String(d.getMonth()+1).padStart(2,"0"),dd=d.getDate()-1;const wx=(wxDaily[`n1-${mm}`]||[])[dd];const ca=(DJ_N1[mm]||[])[dd]||0;res.push({label:d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}),ca,rain:wx?.rain??null,temp:wx?.tmax??null,code:wx?.code??null});}
+for(let i=6;i>=0;i--){const d=new Date(today);d.setFullYear(d.getFullYear()-1);d.setDate(d.getDate()-i);const mm=String(d.getMonth()+1).padStart(2,"0"),dd=d.getDate()-1;const wx=(wxDaily[`n1-${mm}`]||[])[dd];const ca=(DJ_N1[mm]||[])[dd]||0;res.push({label:d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}),ca,rain:wx?.rain??null,snow:wx?.snow??null,temp:wx?.tmax??null,code:wx?.code??null});}
 return res;
 },[wxDaily]);
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -495,7 +505,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:4}}>{f.label}</div>
 <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
 <div style={{fontSize:15,fontWeight:600}}>{f.tmax}°C</div>
-<div style={{fontSize:11,color:T.txt3,margin:"2px 0"}}>💧{f.rain}mm</div>
+<div style={{fontSize:11,color:T.txt3,margin:"2px 0"}}>{isSnow(f.code)?`❄️${f.snow}cm`:`💧${f.rain}mm`}</div>
 <div style={{height:"0.5px",background:T.border,margin:"8px 0"}}/>
 <div style={{fontSize:14,fontWeight:600,color:s.c}}>{est?fmtK(est):"—"}</div>
 </div>;})}
@@ -508,7 +518,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 <div style={{fontSize:10,color:T.txt3,fontWeight:500}}>{d.label}</div>
 <div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"—"}</div>
 <div style={{fontSize:12,fontWeight:500}}>{d.temp!=null?`${d.temp}°`:"—"}</div>
-<div style={{fontSize:10,color:T.txt3}}>💧{d.rain!=null?`${d.rain}mm`:"—"}</div>
+<div style={{fontSize:10,color:T.txt3}}>{d.code!=null&&isSnow(d.code)?`❄️${d.snow!=null?d.snow+"cm":"?"}`:(`💧${d.rain!=null?d.rain+"mm":"—"}`)}</div>
 <div style={{height:"0.5px",background:T.border,margin:"6px 0"}}/>
 <div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.txt3}}>{d.ca>0?fmtK(d.ca):"—"}</div>
 </div>)}
@@ -526,26 +536,52 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </div>)}
 </div>
 </Card>
-<Card><SLbl>Corrélation pluie × CA</SLbl>
-<div style={{fontSize:11,color:T.txt3,marginTop:4,lineHeight:1.5}}>Mesure si la pluie à Chamonix est liée à ton CA journalier. Un coefficient proche de <strong>+1</strong> signifie que les jours de pluie sont tes meilleurs jours (clientèle qui délaisse l'extérieur). Proche de <strong>0</strong> = pas de lien clair.</div>
-<div style={{textAlign:"center",paddingTop:12}}>
-<div style={{fontSize:56,fontWeight:700,color:r>0.4?T.green:r>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{r>=0?"+":""}{r.toFixed(2)}</div>
-<div style={{fontSize:13,color:T.txt2,marginTop:8,fontWeight:500}}>{r>0.5?"Forte — pluie = revenus":r>0.3?"Corrélation modérée":"Faible / à affiner"}</div>
-<div style={{fontSize:11,color:T.txt3,marginTop:4}}>Pearson r · {pairs.length} jours</div>
+<Card><SLbl>Corrélation météo × CA</SLbl>
+<div style={{fontSize:11,color:T.txt3,marginTop:4,lineHeight:1.5}}>Pearson r entre précipitations et CA. Proche de <strong>+1</strong> = mauvais temps = tes meilleurs jours. Proche de <strong>0</strong> = pas de lien clair.</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:12}}>
+<div style={{textAlign:"center",padding:"12px 8px",borderRadius:10,background:T.card2}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>🌧 Pluie</div>
+<div style={{fontSize:44,fontWeight:700,color:rRain>0.4?T.green:rRain>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{rRain>=0?"+":""}{rRain.toFixed(2)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:6}}>{rRain>0.5?"Forte":rRain>0.3?"Modérée":"Faible"}</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:2}}>{rainPairs.length} jours</div>
+</div>
+<div style={{textAlign:"center",padding:"12px 8px",borderRadius:10,background:T.card2}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>❄️ Neige</div>
+{snowPairs.length>3?<><div style={{fontSize:44,fontWeight:700,color:rSnow>0.4?T.green:rSnow>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{rSnow>=0?"+":""}{rSnow.toFixed(2)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:6}}>{rSnow>0.5?"Forte":rSnow>0.3?"Modérée":"Faible"}</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:2}}>{snowPairs.length} jours</div></>:<div style={{fontSize:12,color:T.txt3,paddingTop:20}}>Hors saison</div>}
+</div>
 </div>
 </Card>
 </div>
-<Card><SLbl>Scatter pluie × CA ({pairs.length} observations)</SLbl>
-<div style={{fontSize:11,color:T.txt3,marginTop:4,marginBottom:8,lineHeight:1.5}}>Chaque point = un jour passé. L'axe horizontal indique la pluie ce jour-là (mm), l'axe vertical le CA réalisé (€). Une tendance montante de gauche à droite confirme que la pluie booste les réservations.</div>
-{pairs.length>5?<ResponsiveContainer width="100%" height={220}>
-<ScatterChart margin={{top:4,right:20,bottom:20,left:-10}}>
+<Card><SLbl>Scatter météo × CA</SLbl>
+<div style={{fontSize:11,color:T.txt3,marginTop:4,marginBottom:10,lineHeight:1.5}}>Chaque point = un jour passé. Axe vertical = CA (€). Une tendance montante de gauche à droite confirme l'effet météo sur les réservations. Le graphique neige n'apparaît qu'en saison hivernale.</div>
+<div style={{display:"grid",gridTemplateColumns:snowPairs.length>3?"1fr 1fr":"1fr",gap:16}}>
+<div>
+<div style={{fontSize:11,fontWeight:600,color:"#1565c0",marginBottom:6}}>🌧 Pluie × CA — {rainPairs.length} obs. (axe X : mm)</div>
+{rainPairs.length>5?<ResponsiveContainer width="100%" height={200}>
+<ScatterChart margin={{top:4,right:12,bottom:20,left:-10}}>
 <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
-<XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Précipitations (mm)",position:"insideBottom",offset:-4,fontSize:10,fill:T.txt3}}/>
-<YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Pluie (mm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
+<YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
 <Tooltip cursor={{strokeDasharray:"3 3"}} contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}mm`}/>
-<Scatter data={pairs} fill="#111" fillOpacity={0.3} r={4}/>
+<Scatter data={rainPairs} fill="#1565c0" fillOpacity={0.35} r={4}/>
 </ScatterChart>
 </ResponsiveContainer>:<div style={{textAlign:"center",padding:"40px 0",color:T.txt3}}>⏳ Chargement météo historique…</div>}
+</div>
+{snowPairs.length>3&&<div>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>❄️ Neige × CA — {snowPairs.length} obs. (axe X : cm)</div>
+<ResponsiveContainer width="100%" height={200}>
+<ScatterChart margin={{top:4,right:12,bottom:20,left:-10}}>
+<CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
+<XAxis dataKey="x" type="number" name="Neige" unit="cm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Neige (cm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
+<YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip cursor={{strokeDasharray:"3 3"}} contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}cm`}/>
+<Scatter data={snowPairs} fill="#444" fillOpacity={0.35} r={4}/>
+</ScatterChart>
+</ResponsiveContainer>
+</div>}
+</div>
 </Card>
 </div>;
 }
@@ -732,11 +768,11 @@ setSyncing(false);
 useEffect(()=>{ syncSheets(); const t=setInterval(syncSheets,120000); return()=>clearInterval(t); },[]);
 
 useEffect(()=>{
-fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,precipitation_sum,windspeed_10m_max&timezone=Europe%2FParis&forecast_days=5`)
-.then(r=>r.json()).then(d=>{const D=d.daily,L=["Auj","Dem","J+2","J+3","J+4"];setWxToday({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],wind:Math.round(D.windspeed_10m_max[0])});setWxForecast(D.time.map((_,i)=>({label:L[i],code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i]})));}).catch(()=>{});
+fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum,windspeed_10m_max&timezone=Europe%2FParis&forecast_days=5`)
+.then(r=>r.json()).then(d=>{const D=d.daily,L=["Auj","Dem","J+2","J+3","J+4"];setWxToday({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],snow:D.snowfall_sum[0]||0,wind:Math.round(D.windspeed_10m_max[0])});setWxForecast(D.time.map((_,i)=>({label:L[i],code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i],snow:D.snowfall_sum[i]||0})));}).catch(()=>{});
 const t=new Date(); t.setFullYear(t.getFullYear()-1);
-fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${t.toISOString().slice(0,10)}&end_date=${t.toISOString().slice(0,10)}&daily=weathercode,temperature_2m_max,precipitation_sum,windspeed_10m_max&timezone=Europe%2FParis`)
-.then(r=>r.json()).then(d=>{const D=d.daily;setWxHist({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],wind:Math.round(D.windspeed_10m_max[0])});}).catch(()=>{});
+fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${t.toISOString().slice(0,10)}&end_date=${t.toISOString().slice(0,10)}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum,windspeed_10m_max&timezone=Europe%2FParis`)
+.then(r=>r.json()).then(d=>{const D=d.daily;setWxHist({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],snow:D.snowfall_sum[0]||0,wind:Math.round(D.windspeed_10m_max[0])});}).catch(()=>{});
 },[]);
 
 useEffect(()=>{
@@ -753,8 +789,8 @@ const months=[
 ];
 months.forEach(({key,arch,s,e})=>{
 const base=arch?"https://archive-api.open-meteo.com/v1/archive":"https://api.open-meteo.com/v1/forecast";
-fetch(`${base}?latitude=${LAT}&longitude=${LON}&start_date=${s}&end_date=${e}&daily=weathercode,temperature_2m_max,precipitation_sum&timezone=Europe%2FParis`)
-.then(r=>r.json()).then(d=>{const D=d.daily,pad=key==="n1-02"?14:0;const days=Array(pad).fill(null).concat(D.time.map((_,i)=>({code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i]})));setWxDaily(p=>({...p,[key]:days}));}).catch(()=>{});
+fetch(`${base}?latitude=${LAT}&longitude=${LON}&start_date=${s}&end_date=${e}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum&timezone=Europe%2FParis`)
+.then(r=>r.json()).then(d=>{const D=d.daily,pad=key==="n1-02"?14:0;const days=Array(pad).fill(null).concat(D.time.map((_,i)=>({code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i],snow:D.snowfall_sum[i]||0})));setWxDaily(p=>({...p,[key]:days}));}).catch(()=>{});
 });
 },[]);
 
