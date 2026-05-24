@@ -386,7 +386,13 @@ const moisNOK=MONTHS.filter(m=>ca_n[m]!=null);
 const totalN=moisNOK.reduce((a,m)=>a+(ca_n[m]||0),0);
 const totalN1S=moisNOK.reduce((a,m)=>a+(ca_n1[m]||0),0);
 const totalN1F=MONTHS.reduce((a,m)=>a+(ca_n1[m]||0),0);
-const proj=moisNOK.length?Math.round(totalN/moisNOK.length*12):0;
+const moisComp=moisNOK.filter(m=>ca_n1[m]>0);
+const ratioNum=moisComp.reduce((a,m)=>a+(ca_n[m]||0),0);
+const ratioDen=moisComp.reduce((a,m)=>a+(ca_n1[m]||0),0);
+const growthRatio=ratioDen>0?ratioNum/ratioDen:1;
+const moisRestants=MONTHS.filter(m=>ca_n[m]==null);
+const projRestant=moisRestants.reduce((a,m)=>a+((ca_n1[m]||0)*growthRatio),0);
+const proj=Math.round(totalN+projRestant);
 const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/100)):0),0);
 let cN=0,cN1=0;
 const cumData=MONTHS.map(m=>{cN1+=ca_n1[m]||0;if(ca_n[m]!=null)cN+=ca_n[m];return{m,"N-1":Math.round(cN1),"N":ca_n[m]!=null?Math.round(cN):null,"Obj":Math.round(objAnnuel/12*(MONTHS.indexOf(m)+1))};});
@@ -405,6 +411,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <div style={{fontSize:26,fontWeight:600,marginTop:6}}>{fmt(proj)}</div>
 <DeltaBadge d={pct(proj,totalN1F)} size={13}/>
 <div style={{fontSize:11,color:T.txt3,marginTop:4}}>vs N-1 complet</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:6,lineHeight:1.4}}>Réel + mois restants × N-1 × {growthRatio>0?`+${Math.round((growthRatio-1)*100)}%`:"—"} (croissance observée)</div>
 </Card>
 </div>
 <Card><SLbl>CA cumulé N vs N-1 vs Objectif</SLbl>
