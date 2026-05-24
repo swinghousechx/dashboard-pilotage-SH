@@ -223,7 +223,7 @@ const angle=ratio*180;const[x1,y1]=toXY(0);const[x2,y2]=toXY(angle);
 const large=angle>180?1:0;
 const fill=ratio>=1?T.green:ratio>=0.7?"#111":ratio>=0.4?"#555":"#ccc";
 return <div style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
-<svg width={size} height={size*0.62} viewBox={`0 0 ${size} ${size*0.62}`}>
+<svg width={size} height={size*0.75} viewBox={`0 0 ${size} ${size*0.75}`}>
 <path d={`M ${toXY(0)[0]} ${toXY(0)[1]} A ${r} ${r} 0 1 1 ${toXY(180)[0]} ${toXY(180)[1]}`} fill="none" stroke={T.card2} strokeWidth={8} strokeLinecap="round"/>
 {ratio>0.01&&<path d={`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`} fill="none" stroke={fill} strokeWidth={8} strokeLinecap="round"/>}
 <text x={cx} y={cy+1} textAnchor="middle" fontSize={12} fontWeight={600} fontFamily={font} fill={T.txt}>{fmtK(value)}</text>
