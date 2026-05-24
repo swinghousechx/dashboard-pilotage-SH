@@ -105,7 +105,7 @@ let SIMU_DATA = [
   {d:"22/04",b1:0,b2:0,b3:1},{d:"25/04",b1:0,b2:1,b3:0},{d:"26/04",b1:0,b2:1,b3:0},
   {d:"23/05",b1:0,b2:0,b3:1},
 ];
-let SIMU_M_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
+let SIMU_M_LABELS = {"01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
 
 // ── PARSEURS DYNAMIQUES ───────────────────────────────────────────────────────
 function parseDailyCa(rows) {
@@ -142,7 +142,7 @@ function parseSimuRows(rows) {
   // rows : lignes STATS SIMU, col A = ISO datetime, B = Bay1, C = Bay2, D = Bay3
   const result = [];
   if (!Array.isArray(rows)) return result;
-  const MONTH_LABELS = {"02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
+  const MONTH_LABELS = {"01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
     "07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc"};
   rows.forEach(function(row) {
     const raw = row[0];
