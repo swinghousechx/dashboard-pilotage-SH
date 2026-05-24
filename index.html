@@ -527,6 +527,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </div>
 </Card>
 <Card><SLbl>Corrélation pluie × CA</SLbl>
+<div style={{fontSize:11,color:T.txt3,marginTop:4,lineHeight:1.5}}>Mesure si la pluie à Chamonix est liée à ton CA journalier. Un coefficient proche de <strong>+1</strong> signifie que les jours de pluie sont tes meilleurs jours (clientèle qui délaisse l'extérieur). Proche de <strong>0</strong> = pas de lien clair.</div>
 <div style={{textAlign:"center",paddingTop:12}}>
 <div style={{fontSize:56,fontWeight:700,color:r>0.4?T.green:r>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{r>=0?"+":""}{r.toFixed(2)}</div>
 <div style={{fontSize:13,color:T.txt2,marginTop:8,fontWeight:500}}>{r>0.5?"Forte — pluie = revenus":r>0.3?"Corrélation modérée":"Faible / à affiner"}</div>
@@ -535,6 +536,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </Card>
 </div>
 <Card><SLbl>Scatter pluie × CA ({pairs.length} observations)</SLbl>
+<div style={{fontSize:11,color:T.txt3,marginTop:4,marginBottom:8,lineHeight:1.5}}>Chaque point = un jour passé. L'axe horizontal indique la pluie ce jour-là (mm), l'axe vertical le CA réalisé (€). Une tendance montante de gauche à droite confirme que la pluie booste les réservations.</div>
 {pairs.length>5?<ResponsiveContainer width="100%" height={220}>
 <ScatterChart margin={{top:4,right:20,bottom:20,left:-10}}>
 <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
