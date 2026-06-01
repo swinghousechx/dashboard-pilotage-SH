@@ -369,8 +369,14 @@ const obj=Object.fromEntries(MONTHS.map(m=>[m,ca_n1[m]?Math.round(ca_n1[m]*(1+gr
 const data=MONTHS.map(m=>({m,"N(2026)":ca_n[m],"N-1(2025)":ca_n1[m],"Obj":obj[m]}));
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <Card><SLbl>Objectifs mensuels</SLbl>
-<div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-around",gap:6,paddingTop:8}}>
-{MONTHS.filter(m=>ca_n[m]!=null).map(m=><Gauge key={m} value={ca_n[m]} target={obj[m]||1} label={m} size={100}/>)}
+<div style={{display:"flex",gap:10,overflowX:"auto",paddingTop:8,paddingBottom:6,scrollSnapType:"x mandatory",WebkitOverflowScrolling:"touch"}}>
+{MONTHS.map(m=>{
+const v=ca_n[m]??null;
+const t=obj[m]||1;
+return <div key={m} style={{flexShrink:0,scrollSnapAlign:"start",textAlign:"center",opacity:v==null?0.35:1}}>
+<Gauge value={v??0} target={t} label={m} size={100}/>
+{v==null&&<div style={{fontSize:9,color:T.txt3,marginTop:-2}}>à venir</div>}
+</div>;})}
 </div>
 </Card>
 <Card><SLbl>CA mensuel N vs N-1 vs Objectif</SLbl>
@@ -458,8 +464,11 @@ const wx=wxDaily[sel]||[];
 const yr=isN?"2026":"2025",yr2=isN?"2025":"2026";
 const data=caArr.map((ca,i)=>({j:i+1,[`CA ${yr}`]:ca||0,[`CA ${yr2}`]:ca2Arr[i]||0,rain:wx[i]?.rain??null}));
 return <div style={{display:"flex",flexDirection:"column",gap:12}}>
-<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-{keys.map(({k,l})=><button key={k} onClick={()=>setSel(k)} style={{fontFamily:font,fontSize:11,fontWeight:sel===k?600:400,padding:"4px 11px",borderRadius:8,border:`0.5px solid ${sel===k?T.txt:T.border}`,background:sel===k?T.txt:T.card,color:sel===k?"#fff":T.txt2,cursor:"pointer"}}>{l}</button>)}
+<div style={{display:"flex",alignItems:"center",gap:8}}>
+<span style={{fontSize:12,color:T.txt3,flexShrink:0}}>Mois :</span>
+<select value={sel} onChange={e=>setSel(e.target.value)} style={{fontFamily:font,fontSize:13,fontWeight:500,padding:"7px 12px",borderRadius:8,border:`0.5px solid ${T.border}`,background:T.card,color:T.txt,cursor:"pointer",outline:"none",flexGrow:1,maxWidth:200}}>
+{keys.map(({k,l})=><option key={k} value={k}>{l}</option>)}
+</select>
 </div>
 <Card><SLbl>CA journalier + précipitations</SLbl>
 <ResponsiveContainer width="100%" height={280}>
