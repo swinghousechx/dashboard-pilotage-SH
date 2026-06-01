@@ -727,17 +727,21 @@ function VueSimu(){
 
 // ── MEMBERSHIP ───────────────────────────────────────────────────────────────
 function VueMembership(){
-const [eng,setEng]=useState(()=>parseInt(localStorage.getItem("sh_members_eng")||"0",10));
+const [engM,setEngM]=useState(()=>parseInt(localStorage.getItem("sh_members_engm")||"0",10));
+const [engA,setEngA]=useState(()=>parseInt(localStorage.getItem("sh_members_enga")||"0",10));
 const [libre,setLibre]=useState(()=>parseInt(localStorage.getItem("sh_members_libre")||"0",10));
-const setEngP=v=>{setEng(v);localStorage.setItem("sh_members_eng",v);};
+const setEngMP=v=>{setEngM(v);localStorage.setItem("sh_members_engm",v);};
+const setEngAP=v=>{setEngA(v);localStorage.setItem("sh_members_enga",v);};
 const setLibreP=v=>{setLibre(v);localStorage.setItem("sh_members_libre",v);};
 const today=new Date();
 const moisIdx=today.getMonth();
-const isEte=moisIdx>=5&&moisIdx<=7; // juin=5, juillet=6, août=7
+const isEte=moisIdx>=5&&moisIdx<=7;
 
-const mrr=eng*95+libre*155;
-const arr=eng*950+libre*155*12;
-const totalM=eng+libre;
+// MRR : mensuel 12m = 95€/mois ; annuel one-shot = 950/12 ≈ 79€/mois amorti ; sans engagement = 155€/mois
+const mrr=Math.round(engM*95+engA*(950/12)+libre*155);
+// ARR : revenus annuels réellement encaissés
+const arr=engM*95*12+engA*950+libre*155*12;
+const totalM=engM+engA+libre;
 const arpu=totalM>0?Math.round(mrr/totalM):0;
 const hIncluses=isEte?null:totalM*8; // null = illimité été
 
@@ -785,7 +789,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <Card style={{textAlign:"center"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:4}}>Membres actifs</div>
 <div style={{fontSize:28,fontWeight:700}}>{totalM}</div>
-<div style={{fontSize:10,color:T.txt3,marginTop:4}}>{eng} engagement · {libre} libre</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:4}}>{engM} mensuel · {engA} annuel · {libre} libre</div>
 </Card>
 <Card style={{textAlign:"center"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:4}}>ARPU</div>
@@ -803,13 +807,14 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <Card>
 <SLbl>Simulateur membres</SLbl>
 <div style={{marginTop:12}}>
-<SliderInput label={`PLAYER — Engagement 12 mois (95€/mois)`} val={eng} set={setEngP}/>
-<SliderInput label={`PLAYER — Sans engagement (155€/mois)`} val={libre} set={setLibreP}/>
+<SliderInput label="PLAYER mensuel 12 mois — 95€/mois (1 140€/an)" val={engM} set={setEngMP}/>
+<SliderInput label="PLAYER annuel one-shot — 950€/an (79€/mois amorti)" val={engA} set={setEngAP}/>
+<SliderInput label="PLAYER sans engagement — 155€/mois" val={libre} set={setLibreP}/>
 </div>
 <div style={{marginTop:4}}>
 <Row label="MRR total" val={fmt(mrr)}/>
-<Row label="ARR (engagement 12m)" val={fmt(arr)} sub="membres engagement × 950€/an"/>
-<Row label="Heures incluses/mois" val={isEte?"∞ été (juin–août)":hIncluses+"h"} sub={isEte?"illimité pour tous les membres":"membres × 8h"}/>
+<Row label="ARR total annuel" val={fmt(arr)} sub={`${engM} × 1 140€ + ${engA} × 950€ + ${libre} × 1 860€`}/>
+<Row label="Heures incluses/mois" val={isEte?"∞ été (juin–août)":totalM*8+"h"} sub={isEte?"illimité pour tous les membres":"membres × 8h"}/>
 <Row label="Valeur heures au tarif plein" val={isEte?"—":fmt((hIncluses||0)*50)} sub="estimation ~50€/h moyen"/>
 </div>
 </Card>
