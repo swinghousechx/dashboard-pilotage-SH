@@ -25,24 +25,15 @@ input[type=range]{cursor:pointer;}
   [style*="repeat(7, 1fr)"]{grid-template-columns:repeat(4,1fr)!important;}
   [style*="1fr 1fr"]{grid-template-columns:1fr!important;}
   [style*="repeat(2, 1fr)"]{grid-template-columns:1fr!important;}
-  /* Header : hauteur fixe → auto sur mobile */
-  [style*="position: sticky"][style*="z-index: 10"]{
+  #sh-header{
     height:auto!important;
     min-height:48px!important;
     padding:6px 12px!important;
     row-gap:4px!important;
   }
-  /* Slider objectif plus court sur mobile */
-  [style*="position: sticky"][style*="z-index: 10"] input[type=range]{
-    width:60px!important;
-  }
-  /* Date : masquée sur mobile (économise de la place) */
-  [style*="position: sticky"][style*="z-index: 10"] > div:first-child > span{
-    display:none!important;
-  }
-  [style*="position: sticky"][style*="z-index: 10"] > div:first-child > div{
-    display:none!important;
-  }
+  #sh-header input[type=range]{width:60px!important;}
+  #sh-header .sh-date{display:none!important;}
+  #sh-header .sh-sep{display:none!important;}
 }
 </style>
 </head>
@@ -966,7 +957,7 @@ const dateStr=today.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",mon
 const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"Météo"},{k:"simu",l:"Simulateurs"},{k:"membership",l:"Membership"}];
 
 return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBottom:48}}>
-<div style={{background:T.card,borderBottom:`0.5px solid ${T.border}`,padding:"0 24px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,position:"sticky",top:0,zIndex:10,height:56}}>
+<div id="sh-header" style={{background:T.card,borderBottom:`0.5px solid ${T.border}`,padding:"0 24px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,position:"sticky",top:0,zIndex:10,height:56}}>
 <div style={{display:"flex",alignItems:"center",gap:16}}>
 <svg height="34" viewBox="0 0 1765.91 370" xmlns="http://www.w3.org/2000/svg" style={{width:"auto"}}>
 <path fill="#222221" d="M1369.93,293.97l-.85-50.72c11.84,8.44,46.84,22.14,62.63,22.62,15.98.48,22.36-3.86,22.56-10.55.66-21.86-77.4-8.24-75.86-59.44.74-24.61,14.13-39.8,61.13-39.8,19.95,0,39.3.13,67.39.22l-22.17,42.79c-12.84-7.48-33.79-14.08-45.67-14.63-13.72-.64-22.21,3.71-22.42,10.6-.64,21.07,77.22,7.65,75.69,58.45-.72,24.02-16.47,41.35-61.69,40.91-22.43-.22-31.92,0-60.74-.44Z"/>
@@ -983,8 +974,8 @@ return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBot
 <path fill="#222221" d="M1623.76,283.08c-13.79,7.97-34.96,13.02-56.53,13.02-44.68,0-67.6-17.29-67.6-41.38,0-14.18,8.16-25.64,21.95-31.47-10.68-5.63-16.32-15.93-16.32-27.39,0-21.76,20.2-41.18,64.68-41.18,18.26,0,36.32,3.69,49.34,9.32l-10.49,28.75c-12.82-5.63-25.06-7.96-37.3-7.96-19.04,0-27.39,5.44-27.39,13.6,0,7.38,5.05,11.65,16.9,11.65h38.46v29.33h-40.99c-13.21,0-20.01,4.47-20.01,12.63s8.74,13.99,30.3,13.99c14.57,0,31.66-4.27,43.32-11.27l11.66,28.36Z"/>
 <path fill="#222221" d="M1358.1,295.22l-.93-139.08h-49.31l14.54,79.25c0,21.17-11.46,30.69-26.42,30.69-9.94,0-17.6-4.26-21.48-13.18-.01-.02-.02-.05-.03-.07-.03-.06-.06-.12-.08-.18-2.17-4.25-3.33-9.83-3.33-16.89v-79.81h-31.63v15.51h6v12h6v36.01h-6v12h-6v12h-5.72c.75,11.92,3.26,22.43,7.48,31.05,8.42,15.27,23.21,23.41,42.94,23.41,5.17,0,10.02-.59,14.53-1.74,9.25-2.36,17.05-7.12,23.04-14.19.64-.75,1.26-1.53,1.86-2.33v15.54h34.54Z"/>
 </svg>
-<div style={{width:"0.5px",height:24,background:"rgba(0,0,0,0.15)"}}/>
-<span style={{fontSize:12,color:T.txt3}}>{dateStr}</span>
+<div className="sh-sep" style={{width:"0.5px",height:24,background:"rgba(0,0,0,0.15)"}}/>
+<span className="sh-date" style={{fontSize:12,color:T.txt3}}>{dateStr}</span>
 </div>
 <div style={{display:"flex",alignItems:"center",gap:16}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
