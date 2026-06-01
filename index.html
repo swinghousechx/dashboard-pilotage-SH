@@ -850,6 +850,7 @@ const [vue,setVue]=useState("jour");
 const [ca_n,setCaN]=useState(CA_N_STATIC);
 const [ca_n1,setCaN1]=useState(CA_N1_STATIC);
 const [growth,setGrowth]=useState(40);
+const [blurred,setBlurred]=useState(false);
 const [wxToday,setWxToday]=useState(null);
 const [wxForecast,setWxForecast]=useState([]);
 const [wxHist,setWxHist]=useState(null);
@@ -959,6 +960,9 @@ return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBot
 <span style={{fontSize:12,fontWeight:600,color:growth>=0?T.green:T.red,minWidth:40}}>N-1 {growth>=0?"+":""}{growth}%</span>
 <input type="range" min={-20} max={80} step={5} value={growth} onChange={e=>setGrowth(+e.target.value)} style={{width:80,accentColor:"#111"}}/>
 </div>
+<button onClick={()=>setBlurred(b=>!b)} style={{fontFamily:font,fontSize:13,padding:"5px 10px",borderRadius:6,border:`0.5px solid ${T.border}`,background:blurred?"#111":T.card2,cursor:"pointer",color:blurred?"#fff":T.txt2,display:"flex",alignItems:"center",gap:4}} title={blurred?"Afficher les données":"Masquer les données"}>
+{blurred?"🙈":"👁"}<span style={{fontSize:10}}>{blurred?"Masqué":"Privé"}</span>
+</button>
 <button onClick={syncSheets} disabled={syncing} style={{fontFamily:font,fontSize:11,padding:"5px 12px",borderRadius:6,border:`0.5px solid ${syncStatus==="erreur"?"#ffcdd2":T.border}`,background:syncStatus==="erreur"?"#fff5f5":T.card2,cursor:syncing?"wait":"pointer",color:syncStatus==="erreur"?T.red:T.txt2,display:"flex",alignItems:"center",gap:5,minWidth:90}}>
 <span style={{fontSize:13}}>{syncing?"⏳":syncStatus==="erreur"?"⚠️":"↻"}</span>
 <span>{syncing?"sync…":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
@@ -970,7 +974,7 @@ return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBot
 {navItems.map(n=><NavBtn key={n.k} l={n.l} a={vue===n.k} onClick={()=>setVue(n.k)}/>)}
 </div>
 </div>
-<div style={{maxWidth:920,margin:"0 auto",padding:"20px 16px"}}>
+<div style={{maxWidth:920,margin:"0 auto",padding:"20px 16px",filter:blurred?"blur(8px)":"none",transition:"filter 0.3s ease",userSelect:blurred?"none":"auto"}}>
 {vue==="jour" && <VueJour wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} ca_n={ca_n} ca_n1={ca_n1} growth={growth} wxDaily={wxDaily}/>}
 {vue==="mois" && <VueMois ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
