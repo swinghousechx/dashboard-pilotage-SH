@@ -25,6 +25,24 @@ input[type=range]{cursor:pointer;}
   [style*="repeat(7, 1fr)"]{grid-template-columns:repeat(4,1fr)!important;}
   [style*="1fr 1fr"]{grid-template-columns:1fr!important;}
   [style*="repeat(2, 1fr)"]{grid-template-columns:1fr!important;}
+  /* Header : hauteur fixe → auto sur mobile */
+  [style*="position: sticky"][style*="z-index: 10"]{
+    height:auto!important;
+    min-height:48px!important;
+    padding:6px 12px!important;
+    row-gap:4px!important;
+  }
+  /* Slider objectif plus court sur mobile */
+  [style*="position: sticky"][style*="z-index: 10"] input[type=range]{
+    width:60px!important;
+  }
+  /* Date : masquée sur mobile (économise de la place) */
+  [style*="position: sticky"][style*="z-index: 10"] > div:first-child > span{
+    display:none!important;
+  }
+  [style*="position: sticky"][style*="z-index: 10"] > div:first-child > div{
+    display:none!important;
+  }
 }
 </style>
 </head>
