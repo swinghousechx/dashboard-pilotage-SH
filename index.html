@@ -717,6 +717,125 @@ function VueSimu(){
   </div>;
 }
 
+// ── MEMBERSHIP ───────────────────────────────────────────────────────────────
+function VueMembership(){
+const [eng,setEng]=useState(0);
+const [libre,setLibre]=useState(0);
+const today=new Date();
+const moisIdx=today.getMonth();
+const isEte=moisIdx>=5&&moisIdx<=7; // juin=5, juillet=6, août=7
+
+const mrr=eng*95+libre*155;
+const arr=eng*950+libre*155*12;
+const totalM=eng+libre;
+const arpu=totalM>0?Math.round(mrr/totalM):0;
+const hIncluses=isEte?null:totalM*8; // null = illimité été
+
+const CA_N_TOT=Object.values(CA_N_STATIC).reduce((a,v)=>a+(v||0),0);
+const moisDone=Object.values(CA_N_STATIC).filter(v=>v!=null).length||1;
+const caMoisMoyen=Math.round(CA_N_TOT/moisDone);
+const pctMrr=caMoisMoyen>0?Math.round(mrr/caMoisMoyen*100):0;
+
+const breakEven95=Math.ceil((mrr>0?3000/95:30));
+const simData=[0,5,10,15,20,25,30].map(n=>({n,mrr:(eng+n)*95+libre*155,arr:(eng+n)*950+libre*155*12}));
+
+const Row=({label,val,sub,green})=><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`0.5px solid ${T.border}`}}>
+<span style={{fontSize:13,color:T.txt2}}>{label}</span>
+<div style={{textAlign:"right"}}>
+<span style={{fontSize:15,fontWeight:600,color:green?T.green:T.txt}}>{val}</span>
+{sub&&<div style={{fontSize:10,color:T.txt3,marginTop:1}}>{sub}</div>}
+</div>
+</div>;
+
+const SliderInput=({label,val,set,max=50})=><div style={{marginBottom:16}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+<span style={{fontSize:12,fontWeight:500,color:T.txt2}}>{label}</span>
+<span style={{fontSize:14,fontWeight:700,color:T.txt}}>{val}</span>
+</div>
+<input type="range" min={0} max={max} value={val} onChange={e=>set(+e.target.value)} style={{width:"100%",accentColor:"#111"}}/>
+</div>;
+
+return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+
+{/* KPIs principaux */}
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+<Card style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3,marginBottom:4,fontWeight:500,letterSpacing:"0.5px",textTransform:"uppercase"}}>MRR</div>
+<div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-1px"}}>{fmt(mrr)}</div>
+<div style={{fontSize:11,color:T.txt3,marginTop:4}}>revenus récurrents / mois</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3,marginBottom:4,fontWeight:500,letterSpacing:"0.5px",textTransform:"uppercase"}}>ARR</div>
+<div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-1px"}}>{fmt(arr)}</div>
+<div style={{fontSize:11,color:T.txt3,marginTop:4}}>revenus annuels garantis</div>
+</Card>
+</div>
+
+<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+<Card style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3,marginBottom:4}}>Membres actifs</div>
+<div style={{fontSize:28,fontWeight:700}}>{totalM}</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:4}}>{eng} engagement · {libre} libre</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3,marginBottom:4}}>ARPU</div>
+<div style={{fontSize:28,fontWeight:700}}>{fmt(arpu)}</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:4}}>par membre / mois</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3,marginBottom:4}}>MRR / CA mensuel</div>
+<div style={{fontSize:28,fontWeight:700,color:pctMrr>30?T.green:pctMrr>15?T.txt:T.red}}>{pctMrr}%</div>
+<div style={{fontSize:10,color:T.txt3,marginTop:4}}>revenu garanti sur ~{fmt(caMoisMoyen)}</div>
+</Card>
+</div>
+
+{/* Simulateur */}
+<Card>
+<SLbl>Simulateur membres</SLbl>
+<div style={{marginTop:12}}>
+<SliderInput label={`PLAYER — Engagement 12 mois (95€/mois)`} val={eng} set={setEng}/>
+<SliderInput label={`PLAYER — Sans engagement (155€/mois)`} val={libre} set={setLibre}/>
+</div>
+<div style={{marginTop:4}}>
+<Row label="MRR total" val={fmt(mrr)}/>
+<Row label="ARR (engagement 12m)" val={fmt(arr)} sub="membres engagement × 950€/an"/>
+<Row label="Heures incluses/mois" val={isEte?"∞ été (juin–août)":hIncluses+"h"} sub={isEte?"illimité pour tous les membres":"membres × 8h"}/>
+<Row label="Valeur heures au tarif plein" val={isEte?"—":fmt((hIncluses||0)*50)} sub="estimation ~50€/h moyen"/>
+</div>
+</Card>
+
+{/* Été illimité */}
+{isEte&&<Card style={{background:"#f0faf4",border:`1px solid ${T.green}`}}>
+<SLbl>☀️ Mode été actif — Accès illimité juin–août</SLbl>
+<div style={{fontSize:12,color:T.txt2,marginTop:8,lineHeight:1.6}}>
+Les membres utilisent les simulateurs sans limite ce mois-ci. Le MRR de <strong>{fmt(mrr)}</strong> est garanti indépendamment de l'utilisation — chaque heure supplémentaire non tarifée est un coût d'opportunité.
+</div>
+<div style={{marginTop:10,display:"flex",gap:16}}>
+<div style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3}}>Revenu garanti</div>
+<div style={{fontSize:18,fontWeight:700,color:T.green}}>{fmt(mrr)}</div>
+</div>
+<div style={{textAlign:"center"}}>
+<div style={{fontSize:11,color:T.txt3}}>Heures offertes</div>
+<div style={{fontSize:18,fontWeight:700,color:T.txt}}>Illimitées</div>
+</div>
+</div>
+</Card>}
+
+{/* Formules */}
+<Card>
+<SLbl>Formules en vigueur</SLbl>
+<div style={{marginTop:10}}>
+<Row label="PLAYER — Engagement 12 mois" val="95€/mois" sub="ou 950€/an · 2 mois offerts"/>
+<Row label="PLAYER — Sans engagement" val="155€/mois"/>
+<Row label="Inclus" val="8h/mois · été illimité" sub="+ 15% heures supp · 10% leçons · invités 5€/pers"/>
+<Row label="Bay sans abonnement" val="45€/h avant 18h · 65€/h après"/>
+</div>
+</Card>
+
+</div>;
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App(){
 const [vue,setVue]=useState("jour");
@@ -803,7 +922,7 @@ fetch(`${base}?latitude=${LAT}&longitude=${LON}&start_date=${s}&end_date=${e}&da
 
 const today=new Date();
 const dateStr=today.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^\w/,c=>c.toUpperCase());
-const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"Météo"},{k:"simu",l:"Simulateurs"}];
+const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"Météo"},{k:"simu",l:"Simulateurs"},{k:"membership",l:"Membership"}];
 
 return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBottom:48}}>
 <div style={{background:T.card,borderBottom:`0.5px solid ${T.border}`,padding:"0 24px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,position:"sticky",top:0,zIndex:10,height:56}}>
@@ -850,6 +969,7 @@ return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBot
 {vue==="jours" && <VueJours wxDaily={wxDaily}/>}
 {vue==="meteo" && <VueMeteo wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} wxDaily={wxDaily}/>}
 {vue==="simu" && <VueSimu/>}
+{vue==="membership" && <VueMembership/>}
 </div>
 </div>;
 }
