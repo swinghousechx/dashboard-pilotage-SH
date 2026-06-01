@@ -750,8 +750,6 @@ const moisDone=Object.values(CA_N_STATIC).filter(v=>v!=null).length||1;
 const caMoisMoyen=Math.round(CA_N_TOT/moisDone);
 const pctMrr=caMoisMoyen>0?Math.round(mrr/caMoisMoyen*100):0;
 
-const breakEven95=Math.ceil((mrr>0?3000/95:30));
-const simData=[0,5,10,15,20,25,30].map(n=>({n,mrr:(eng+n)*95+libre*155,arr:(eng+n)*950+libre*155*12}));
 
 const Row=({label,val,sub,green})=><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`0.5px solid ${T.border}`}}>
 <span style={{fontSize:13,color:T.txt2}}>{label}</span>
