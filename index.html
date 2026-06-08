@@ -18,13 +18,32 @@ input[type=range]{cursor:pointer;}
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px;}
+/* États interactifs — transitions discrètes, anneau de focus en vert signature Swing House à faible opacité */
+.sh-navbtn{transition:background .15s ease-out,color .15s ease-out;}
+.sh-navbtn:not([data-active="true"]):hover{color:#111;background:rgba(0,0,0,0.045);}
+.sh-navbtn:focus-visible{outline:2px solid rgba(0,82,53,.35);outline-offset:1px;}
+.sh-navbtn:active{transform:scale(0.97);}
+.sh-iconbtn{transition:background .15s ease-out,border-color .15s ease-out,filter .15s ease-out;}
+.sh-iconbtn:hover{filter:brightness(0.96);}
+.sh-iconbtn:focus-visible{outline:2px solid rgba(0,82,53,.35);outline-offset:1px;}
+.sh-iconbtn:active{transform:scale(0.97);}
+.sh-iconbtn:disabled{cursor:wait;opacity:0.7;}
+.sh-select{transition:border-color .15s ease-out;}
+.sh-select:hover{border-color:rgba(0,0,0,0.22);}
+.sh-select:focus-visible{outline:2px solid rgba(0,82,53,.35);outline-offset:1px;border-color:rgba(0,0,0,0.22);}
+@media(prefers-reduced-motion:reduce){
+  .sh-navbtn,.sh-iconbtn,.sh-select{transition:none!important;}
+  .sh-navbtn:active,.sh-iconbtn:active{transform:none!important;}
+}
 @media(max-width:600px){
-  [style*="repeat(4, 1fr)"]{grid-template-columns:repeat(2,1fr)!important;}
-  [style*="repeat(3, 1fr)"]{grid-template-columns:1fr!important;}
-  [style*="repeat(5, 1fr)"]{grid-template-columns:repeat(3,1fr)!important;}
-  [style*="repeat(7, 1fr)"]{grid-template-columns:repeat(4,1fr)!important;}
-  [style*="1fr 1fr"]{grid-template-columns:1fr!important;}
-  [style*="repeat(2, 1fr)"]{grid-template-columns:1fr!important;}
+  /* Ciblage par classes sémantiques (les sélecteurs [style*="repeat(4, 1fr)"] précédents ne
+     matchaient jamais : React rend "repeat(4,1fr)" sans espace après la virgule — la grille
+     mobile était donc figée en desktop sur tous les écrans <600px). */
+  .sh-grid-7{grid-template-columns:repeat(4,1fr)!important;}
+  .sh-grid-5{grid-template-columns:repeat(3,1fr)!important;}
+  .sh-grid-4{grid-template-columns:repeat(2,1fr)!important;}
+  .sh-grid-3{grid-template-columns:1fr!important;}
+  .sh-grid-2col{grid-template-columns:1fr!important;}
   #sh-header{
     height:auto!important;
     min-height:48px!important;
@@ -53,6 +72,10 @@ const T = {
 bg:"#f5f4f0", card:"#ffffff", card2:"#f7f6f2",
 border:"rgba(0,0,0,0.08)", border2:"rgba(0,0,0,0.15)",
 txt:"#111", txt2:"#555", txt3:"#777", green:"#2e7d32", red:"#c62828",
+// Accents météo (sémantiques, hors palette neutre — usage volontairement limité aux contextes pluie/neige)
+rain:"#1565c0", snow:"#444",
+// Échelle graphique (séries chronologiques : actuel / précédent / objectif / repère)
+chartCur:"#111", chartPrev:"#d8d5ce", chartMuted:"#ccc", chartObj:"#888",
 };
 
 // ── DONNÉES STATIQUES ─────────────────────────────────────────────────────────
@@ -219,7 +242,7 @@ return result;
 const Card = ({children,style={}}) => <div style={{background:T.card,borderRadius:14,border:`0.5px solid ${T.border}`,padding:"18px 20px",...style}}>{children}</div>;
 const SLbl = ({children}) => <div style={{fontSize:10,fontWeight:500,letterSpacing:"0.07em",textTransform:"uppercase",color:T.txt3,marginBottom:10}}>{children}</div>;
 const DeltaBadge = ({d,size=12}) => d==null?null:<span style={{fontSize:size,fontWeight:500,color:clrD(d)}}>{arrD(d)} {Math.abs(d).toFixed(1)}%</span>;
-const NavBtn = ({l,a,onClick}) => <button onClick={onClick} style={{fontFamily:font,fontSize:12,fontWeight:a?600:400,color:a?T.txt:T.txt2,background:a?T.card:"transparent",border:a?`0.5px solid ${T.border}`:"0.5px solid transparent",borderRadius:8,padding:"6px 14px",cursor:"pointer",outline:"none"}}>{l}</button>;
+const NavBtn = ({l,a,onClick}) => <button onClick={onClick} className="sh-navbtn" data-active={a?"true":"false"} style={{fontFamily:font,fontSize:12,fontWeight:a?600:400,color:a?T.txt:T.txt2,background:a?T.card:"transparent",border:a?`0.5px solid ${T.border}`:"0.5px solid transparent",borderRadius:8,padding:"6px 14px",cursor:"pointer",outline:"none"}}>{l}</button>;
 const CTooltip = ({active,payload,label}) => {
 if(!active||!payload?.length)return null;
 return <div style={{background:T.card,border:`0.5px solid ${T.border}`,borderRadius:8,padding:"8px 12px",fontSize:12}}>
@@ -238,7 +261,7 @@ const toXY=deg=>{const rad=((deg-180)*Math.PI/180);return[cx+r*Math.cos(rad),cy+
 const ratio=target>0?Math.min(value/target,1.1):0;
 const angle=ratio*180;const[x1,y1]=toXY(0);const[x2,y2]=toXY(angle);
 const large=angle>180?1:0;
-const fill=ratio>=1?T.green:ratio>=0.7?"#111":ratio>=0.4?"#555":"#ccc";
+const fill=ratio>=1?T.green:ratio>=0.7?T.txt:ratio>=0.4?T.txt2:T.chartMuted;
 return <div style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
 <svg width={size} height={size*0.75} viewBox={`0 0 ${size} ${size*0.75}`}>
 <path d={`M ${toXY(0)[0]} ${toXY(0)[1]} A ${r} ${r} 0 1 1 ${toXY(180)[0]} ${toXY(180)[1]}`} fill="none" stroke={T.card2} strokeWidth={8} strokeLinecap="round"/>
@@ -313,7 +336,7 @@ const probaDem=rainDem!=null?probaObj(rainDem,objJour,pairs):null;
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 {probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
 {probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
-<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+<div className="sh-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
 {[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
 <Card key={i} style={{padding:"14px 16px"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>{label}</div>
@@ -337,7 +360,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 </Card>
 ))}
 </div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
 <Card>
 <SLbl>Progression objectifs</SLbl>
 <div style={{display:"flex",justifyContent:"space-around",paddingTop:4}}>
@@ -348,7 +371,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 </Card>
 <Card>
 <SLbl>Météo Chamonix</SLbl>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
 {[{title:"Aujourd'hui",wx:wxToday,ca:null},{title:"Même jour N-1",wx:wxHist,ca:caJN1}].map(({title,wx,ca},i)=>(
 <div key={i} style={{background:T.card2,borderRadius:10,padding:"12px",border:`0.5px solid ${T.border}`}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>{title}</div>
@@ -365,7 +388,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 </div>
 </Card>
 </div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
 <Card>
 <SLbl>N vs N-1 par mois</SLbl>
 <div style={{borderBottom:`0.5px solid ${T.border}`,marginBottom:6,paddingBottom:3,display:"flex",justifyContent:"flex-end"}}><span style={{fontSize:10,color:T.txt3}}>│ = N-1</span></div>
@@ -375,7 +398,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <SLbl>Prévisions 5 jours</SLbl>
 <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
 {wxForecast.map((f,i)=>{
-const s=f.rain>8?{l:"Fort",c:T.green}:f.rain>3?{l:"Favorable",c:"#1565c0"}:f.rain>0?{l:"Neutre",c:T.txt2}:{l:"Faible",c:T.red};
+const s=f.rain>8?{l:"Fort",c:T.green}:f.rain>3?{l:"Favorable",c:T.rain}:f.rain>0?{l:"Neutre",c:T.txt2}:{l:"Faible",c:T.red};
 return <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",borderRadius:8,background:i===0?T.card2:"transparent"}}>
 <span style={{fontSize:11,fontWeight:500,color:T.txt3,width:28}}>{f.label}</span>
 <span style={{fontSize:18,width:24}}>{wmoI(f.code)}</span>
@@ -412,9 +435,9 @@ return <div key={m} style={{flexShrink:0,scrollSnapAlign:"start",textAlign:"cent
 <XAxis dataKey="m" tick={{fontSize:11,fontFamily:font}} axisLine={false} tickLine={false}/>
 <YAxis tickFormatter={v=>v?`${(v/1000).toFixed(0)}k`:"0"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
 <Tooltip content={<CTooltip/>}/><Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8} iconType="square"/>
-<Bar dataKey="N-1(2025)" fill="#d8d5ce" radius={[3,3,0,0]}/>
+<Bar dataKey="N-1(2025)" fill={T.chartPrev} radius={[3,3,0,0]}/>
 <Bar dataKey="N(2026)" fill="#111" radius={[3,3,0,0]}/>
-<Bar dataKey="Obj" fill="transparent" stroke="#888" strokeWidth={1.5} strokeDasharray="5 3" radius={[3,3,0,0]}/>
+<Bar dataKey="Obj" fill="transparent" stroke={T.chartObj} strokeWidth={1.5} strokeDasharray="5 3" radius={[3,3,0,0]}/>
 </BarChart>
 </ResponsiveContainer>
 </Card>
@@ -437,7 +460,7 @@ const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/1
 let cN=0,cN1=0;
 const cumData=MONTHS.map(m=>{cN1+=ca_n1[m]||0;if(ca_n[m]!=null)cN+=ca_n[m];return{m,"N-1":Math.round(cN1),"N":ca_n[m]!=null?Math.round(cN):null,"Obj":Math.round(objAnnuel/12*(MONTHS.indexOf(m)+1))};});
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+<div className="sh-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
 <Card style={{textAlign:"center"}}><Gauge value={totalN} target={objAnnuel} label="CA N annuel" size={160}/>
 <DeltaBadge d={pct(totalN,totalN1S)} size={13}/>
 <div style={{fontSize:11,color:T.txt3,marginTop:2}}>vs N-1 même période</div>
@@ -461,9 +484,9 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <XAxis dataKey="m" tick={{fontSize:11,fontFamily:font,fill:T.txt2}} axisLine={false} tickLine={false}/>
 <YAxis tickFormatter={v=>v?`${(v/1000).toFixed(0)}k`:"0"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
 <Tooltip content={<CTooltip/>}/><Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8}/>
-<Line type="monotone" dataKey="N-1" stroke="#ccc" strokeWidth={2} dot={false}/>
+<Line type="monotone" dataKey="N-1" stroke={T.chartMuted} strokeWidth={2} dot={false}/>
 <Line type="monotone" dataKey="N" stroke="#111" strokeWidth={2.5} dot={{r:4,fill:"#111"}} connectNulls={false}/>
-<Line type="monotone" dataKey="Obj" stroke="#888" strokeWidth={1.5} strokeDasharray="6 3" dot={false}/>
+<Line type="monotone" dataKey="Obj" stroke={T.chartObj} strokeWidth={1.5} strokeDasharray="6 3" dot={false}/>
 </LineChart>
 </ResponsiveContainer>
 </Card>
@@ -492,7 +515,7 @@ const data=caArr.map((ca,i)=>({j:i+1,[`CA ${yr}`]:ca||0,[`CA ${yr2}`]:ca2Arr[i]|
 return <div style={{display:"flex",flexDirection:"column",gap:12}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <span style={{fontSize:12,color:T.txt3,flexShrink:0}}>Mois :</span>
-<select value={sel} onChange={e=>setSel(e.target.value)} style={{fontFamily:font,fontSize:13,fontWeight:500,padding:"7px 12px",borderRadius:8,border:`0.5px solid ${T.border}`,background:T.card,color:T.txt,cursor:"pointer",outline:"none",flexGrow:1,maxWidth:200}}>
+<select value={sel} onChange={e=>setSel(e.target.value)} className="sh-select" style={{fontFamily:font,fontSize:13,fontWeight:500,padding:"7px 12px",borderRadius:8,border:`0.5px solid ${T.border}`,background:T.card,color:T.txt,cursor:"pointer",outline:"none",flexGrow:1,maxWidth:200}}>
 {keys.map(({k,l})=><option key={k} value={k}>{l}</option>)}
 </select>
 </div>
@@ -506,7 +529,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:12}}>
 <Tooltip contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n.startsWith("CA")?fmt(v):`${v?.toFixed?.(1)}mm`}/>
 <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8}} iconSize={8} iconType="square"/>
 <Bar yAxisId="ca" dataKey={`CA ${yr}`} fill="#111" radius={[2,2,0,0]}/>
-<Bar yAxisId="ca" dataKey={`CA ${yr2}`} fill="#d5d2cb" radius={[2,2,0,0]}/>
+<Bar yAxisId="ca" dataKey={`CA ${yr2}`} fill={T.chartPrev} radius={[2,2,0,0]}/>
 <Area yAxisId="rain" type="monotone" dataKey="rain" name="Pluie(mm)" fill="#dbeafe" stroke="#6ab0de" strokeWidth={1.5} fillOpacity={0.4}/>
 </ComposedChart>
 </ResponsiveContainer>
@@ -549,8 +572,8 @@ return res;
 },[wxDaily]);
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <Card><SLbl>Prévisions J+5 — CA estimé</SLbl>
-<div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginTop:8}}>
-{wxForecast.map((f,i)=>{const est=estimateCA(f.rain,pairs);const s=f.rain>8?{c:T.green}:f.rain>3?{c:"#1565c0"}:f.rain>0?{c:T.txt2}:{c:T.red};
+<div className="sh-grid-5" style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginTop:8}}>
+{wxForecast.map((f,i)=>{const est=estimateCA(f.rain,pairs);const s=f.rain>8?{c:T.green}:f.rain>3?{c:T.rain}:f.rain>0?{c:T.txt2}:{c:T.red};
 return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:10,background:i===0?T.card2:T.card,border:`0.5px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:4}}>{f.label}</div>
 <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
@@ -563,7 +586,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 <div style={{fontSize:10,color:T.txt3,marginTop:10}}>Régression sur {pairs.length} jours réels · Open-Meteo Chamonix</div>
 </Card>
 <Card><SLbl>Cette semaine N-1 (2025)</SLbl>
-<div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginTop:8}}>
+<div className="sh-grid-7" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginTop:8}}>
 {histWeek.map((d,i)=><div key={i} style={{textAlign:"center",padding:"10px 4px",borderRadius:8,background:T.card2,border:`0.5px solid ${T.border}`}}>
 <div style={{fontSize:10,color:T.txt3,fontWeight:500}}>{d.label}</div>
 <div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"—"}</div>
@@ -574,7 +597,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </div>)}
 </div>
 </Card>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
 <Card><SLbl>CA moyen par condition</SLbl>
 <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:8}}>
 {condData.map(c=><div key={c.label}>
@@ -588,7 +611,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </Card>
 <Card><SLbl>Corrélation météo × CA</SLbl>
 <div style={{fontSize:11,color:T.txt3,marginTop:4,lineHeight:1.5}}>Pearson r entre précipitations et CA. Proche de <strong>+1</strong> = mauvais temps = tes meilleurs jours. Proche de <strong>0</strong> = pas de lien clair.</div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:12}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:12}}>
 <div style={{textAlign:"center",padding:"12px 8px",borderRadius:10,background:T.card2}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>🌧 Pluie</div>
 <div style={{fontSize:44,fontWeight:700,color:rRain>0.4?T.green:rRain>0.2?T.txt:T.red,letterSpacing:"-2px",lineHeight:1}}>{rRain>=0?"+":""}{rRain.toFixed(2)}</div>
@@ -606,16 +629,16 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 </div>
 <Card><SLbl>Scatter météo × CA</SLbl>
 <div style={{fontSize:11,color:T.txt3,marginTop:4,marginBottom:10,lineHeight:1.5}}>Chaque point = un jour passé. Axe vertical = CA (€). Une tendance montante de gauche à droite confirme l'effet météo sur les réservations. Le graphique neige n'apparaît qu'en saison hivernale.</div>
-<div style={{display:"grid",gridTemplateColumns:snowPairs.length>3?"1fr 1fr":"1fr",gap:16}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:snowPairs.length>3?"1fr 1fr":"1fr",gap:16}}>
 <div>
-<div style={{fontSize:11,fontWeight:600,color:"#1565c0",marginBottom:6}}>🌧 Pluie × CA — {rainPairs.length} obs. (axe X : mm)</div>
+<div style={{fontSize:11,fontWeight:600,color:T.rain,marginBottom:6}}>🌧 Pluie × CA — {rainPairs.length} obs. (axe X : mm)</div>
 {rainPairs.length>5?<ResponsiveContainer width="100%" height={200}>
 <ScatterChart margin={{top:4,right:12,bottom:20,left:-10}}>
 <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false}/>
 <XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Pluie (mm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
 <YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
 <Tooltip cursor={{strokeDasharray:"3 3"}} contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}mm`}/>
-<Scatter data={rainPairs} fill="#1565c0" fillOpacity={0.35} r={4}/>
+<Scatter data={rainPairs} fill={T.rain} fillOpacity={0.35} r={4}/>
 </ScatterChart>
 </ResponsiveContainer>:<div style={{textAlign:"center",padding:"40px 0",color:T.txt3}}>⏳ Chargement météo historique…</div>}
 </div>
@@ -627,7 +650,7 @@ return <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:1
 <XAxis dataKey="x" type="number" name="Neige" unit="cm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Neige (cm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
 <YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
 <Tooltip cursor={{strokeDasharray:"3 3"}} contentStyle={{fontFamily:font,fontSize:11,borderRadius:8}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}cm`}/>
-<Scatter data={snowPairs} fill="#444" fillOpacity={0.35} r={4}/>
+<Scatter data={snowPairs} fill={T.snow} fillOpacity={0.35} r={4}/>
 </ScatterChart>
 </ResponsiveContainer>
 </div>}
@@ -686,10 +709,10 @@ function VueSimu(){
   const avgMois=mLabels.length?+(grandTotal/mLabels.length).toFixed(1):0;
   const avgJourAll=SIMU_DATA.length?+(grandTotal/SIMU_DATA.length).toFixed(1):0;
   const dayData=filtered.map(r=>({j:r.d,"Bay 1":r.b1,"Bay 2":r.b2,"Bay 3":r.b3}));
-  const C=["#111","#888","#ccc"];
+  const C=[T.chartCur,T.chartObj,T.chartMuted];
   const bayLabels=["Bay 1 (Entrée)","Bay 2","Bay 3"];
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+    <div className="sh-grid-4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
       {[totals.b1,totals.b2,totals.b3].map((h,i)=>{
         const share=grandTotal>0?Math.round(h/grandTotal*100):0;
         return <Card key={i} style={{position:"relative",overflow:"hidden"}}>
@@ -741,7 +764,7 @@ function VueSimu(){
         </div>
       </div>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-        {["all",...mLabels].map(m=><button key={m} onClick={()=>setSelM(m)} style={{fontFamily:font,fontSize:11,fontWeight:selM===m?600:400,padding:"4px 11px",borderRadius:8,border:`0.5px solid ${selM===m?T.txt:T.border}`,background:selM===m?T.txt:T.card,color:selM===m?"#fff":T.txt2,cursor:"pointer"}}>{m==="all"?"Tout":m}</button>)}
+        {["all",...mLabels].map(m=><button key={m} onClick={()=>setSelM(m)} className="sh-navbtn" data-active={selM===m?"true":"false"} style={{fontFamily:font,fontSize:11,fontWeight:selM===m?600:400,padding:"4px 11px",borderRadius:8,border:`0.5px solid ${selM===m?T.txt:T.border}`,background:selM===m?T.txt:T.card,color:selM===m?"#fff":T.txt2,cursor:"pointer"}}>{m==="all"?"Tout":m}</button>)}
       </div>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={dayData} barCategoryGap="12%" margin={{top:4,right:4,left:-10,bottom:0}}>
@@ -805,7 +828,7 @@ const SliderInput=({label,val,set,max=50})=><div style={{marginBottom:16}}>
 return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
 {/* KPIs principaux */}
-<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+<div className="sh-grid-2col" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
 <Card style={{textAlign:"center"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:4,fontWeight:500,letterSpacing:"0.5px",textTransform:"uppercase"}}>MRR</div>
 <div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-1px"}}>{fmt(mrr)}</div>
@@ -818,7 +841,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 </Card>
 </div>
 
-<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+<div className="sh-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
 <Card style={{textAlign:"center"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:4}}>Membres actifs</div>
 <div style={{fontSize:28,fontWeight:700}}>{totalM}</div>
@@ -1000,10 +1023,10 @@ return <div style={{fontFamily:font,background:T.bg,minHeight:"100vh",paddingBot
 <span style={{fontSize:12,fontWeight:600,color:growth>=0?T.green:T.red,minWidth:40}}>N-1 {growth>=0?"+":""}{growth}%</span>
 <input type="range" min={-20} max={80} step={5} value={growth} onChange={e=>setGrowth(+e.target.value)} style={{width:80,accentColor:"#111"}}/>
 </div>
-<button onClick={()=>setBlurred(b=>!b)} style={{fontFamily:font,fontSize:13,padding:"5px 10px",borderRadius:6,border:`0.5px solid ${T.border}`,background:blurred?"#111":T.card2,cursor:"pointer",color:blurred?"#fff":T.txt2,display:"flex",alignItems:"center",gap:4}} title={blurred?"Afficher les données":"Masquer les données"}>
+<button onClick={()=>setBlurred(b=>!b)} className="sh-iconbtn" style={{fontFamily:font,fontSize:13,padding:"5px 10px",borderRadius:6,border:`0.5px solid ${T.border}`,background:blurred?T.txt:T.card2,cursor:"pointer",color:blurred?"#fff":T.txt2,display:"flex",alignItems:"center",gap:4}} title={blurred?"Afficher les données":"Masquer les données"}>
 {blurred?"🙈":"👁"}<span style={{fontSize:10}}>{blurred?"Masqué":"Privé"}</span>
 </button>
-<button onClick={syncSheets} disabled={syncing} style={{fontFamily:font,fontSize:11,padding:"5px 12px",borderRadius:6,border:`0.5px solid ${syncStatus==="erreur"?"#ffcdd2":T.border}`,background:syncStatus==="erreur"?"#fff5f5":T.card2,cursor:syncing?"wait":"pointer",color:syncStatus==="erreur"?T.red:T.txt2,display:"flex",alignItems:"center",gap:5,minWidth:90}}>
+<button onClick={syncSheets} disabled={syncing} className="sh-iconbtn" style={{fontFamily:font,fontSize:11,padding:"5px 12px",borderRadius:6,border:`0.5px solid ${syncStatus==="erreur"?"#ffcdd2":T.border}`,background:syncStatus==="erreur"?"#fff5f5":T.card2,cursor:syncing?"wait":"pointer",color:syncStatus==="erreur"?T.red:T.txt2,display:"flex",alignItems:"center",gap:5,minWidth:90}}>
 <span style={{fontSize:13}}>{syncing?"⏳":syncStatus==="erreur"?"⚠️":"↻"}</span>
 <span>{syncing?"sync…":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
 </button>
