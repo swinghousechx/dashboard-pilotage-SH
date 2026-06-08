@@ -291,6 +291,11 @@ const today=new Date(),mIdx=today.getMonth(),mKey=MONTHS[mIdx],mm=MM[mIdx],dd=to
 const caJN1=DJ_N1[mm]?.[dd]??null;
 const objJour=caJN1!=null?Math.round(caJN1*(1+growth/100)):null;
 const caMN=ca_n[mKey]??0,caMN1=ca_n1[mKey]??0;
+const joursDansLeMois=new Date(today.getFullYear(),mIdx+1,0).getDate();
+const joursEcoules=dd+1;
+const pctMoisEcoule=Math.round(joursEcoules/joursDansLeMois*100);
+const caN1MemeStade=(DJ_N1[mm]||[]).slice(0,joursEcoules).reduce((a,v)=>a+(v||0),0);
+const deltaMemeStade=caN1MemeStade>0?pct(caMN,caN1MemeStade):null;
 const moisNOK=MONTHS.filter(m=>ca_n[m]!=null);
 const totalN=moisNOK.reduce((a,m)=>a+(ca_n[m]||0),0);
 const totalN1S=moisNOK.reduce((a,m)=>a+(ca_n1[m]||0),0);
@@ -309,7 +314,7 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 {probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
 {probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1"},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub},i)=>(
+{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
 <Card key={i} style={{padding:"14px 16px"}}>
 <div style={{fontSize:11,color:T.txt3,marginBottom:6}}>{label}</div>
 <div style={{fontSize:20,fontWeight:600,marginBottom:2}}>{fmt(n)}</div>
@@ -317,6 +322,18 @@ return <div style={{display:"flex",flexDirection:"column",gap:14}}>
 <span style={{fontSize:11,color:T.txt3}}>{sub} {fmt(n1)}</span>
 {n!=null&&n1&&<DeltaBadge d={pct(n,n1)}/>}
 </div>
+{stade&&<div style={{marginTop:8,paddingTop:8,borderTop:`0.5px solid ${T.border}`}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+<span style={{fontSize:10,color:T.txt3}}>Jour {joursEcoules}/{joursDansLeMois} · {pctMoisEcoule}% du mois écoulé</span>
+</div>
+<div style={{height:4,borderRadius:2,background:T.card2,overflow:"hidden",marginBottom:6}}>
+<div style={{height:"100%",width:`${pctMoisEcoule}%`,background:T.txt,borderRadius:2}}/>
+</div>
+<div style={{display:"flex",alignItems:"center",gap:6}}>
+<span style={{fontSize:11,color:T.txt3}}>à ce stade en N-1 : {fmt(caN1MemeStade)}</span>
+{deltaMemeStade!=null&&<DeltaBadge d={deltaMemeStade}/>}
+</div>
+</div>}
 </Card>
 ))}
 </div>
